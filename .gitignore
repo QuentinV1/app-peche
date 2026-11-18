@@ -1,0 +1,9 @@
+node_modules/
+dist/
+data-pipeline/raw/
+data/zones.geojson
+android/.gradle/
+android/app/build/
+android/build/
+.DS_Store
+*.log

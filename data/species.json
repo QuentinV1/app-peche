@@ -1,0 +1,1258 @@
+[
+  {
+    "id": "dicentrarchus-labrax",
+    "commonName": "Bar européen (Loup)",
+    "scientificName": "Dicentrarchus labrax",
+    "aliases": [
+      "bar",
+      "bar commun",
+      "loup"
+    ],
+    "category": "fish",
+    "environment": "sea",
+    "measureMethod": "Longueur totale : du bout du museau à l'extrémité de la nageoire caudale (queue déployée).",
+    "peakMonths": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ]
+  },
+  {
+    "id": "pollachius-pollachius",
+    "commonName": "Lieu jaune",
+    "scientificName": "Pollachius pollachius",
+    "aliases": [
+      "lieu",
+      "lieu jaune"
+    ],
+    "category": "fish",
+    "environment": "sea",
+    "measureMethod": "Longueur totale : du bout du museau à l'extrémité de la nageoire caudale.",
+    "peakMonths": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "id": "pollachius-virens",
+    "commonName": "Lieu noir",
+    "scientificName": "Pollachius virens",
+    "aliases": [
+      "lieu noir",
+      "colin"
+    ],
+    "category": "fish",
+    "environment": "sea",
+    "measureMethod": "Longueur totale : du bout du museau à l'extrémité de la nageoire caudale.",
+    "peakMonths": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "id": "gadus-morhua",
+    "commonName": "Cabillaud (Morue)",
+    "scientificName": "Gadus morhua",
+    "aliases": [
+      "cabillaud",
+      "morue"
+    ],
+    "category": "fish",
+    "environment": "sea",
+    "measureMethod": "Longueur totale : du bout du museau à l'extrémité de la nageoire caudale.",
+    "peakMonths": [
+      10,
+      11,
+      12,
+      1,
+      2,
+      3
+    ]
+  },
+  {
+    "id": "merlangius-merlangus",
+    "commonName": "Merlan",
+    "scientificName": "Merlangius merlangus",
+    "aliases": [
+      "merlan"
+    ],
+    "category": "fish",
+    "environment": "sea",
+    "measureMethod": "Longueur totale : du bout du museau à l'extrémité de la nageoire caudale.",
+    "peakMonths": [
+      9,
+      10,
+      11,
+      12,
+      1,
+      2
+    ]
+  },
+  {
+    "id": "sparus-aurata",
+    "commonName": "Dorade royale",
+    "scientificName": "Sparus aurata",
+    "aliases": [
+      "daurade royale",
+      "dorade"
+    ],
+    "category": "fish",
+    "environment": "sea",
+    "measureMethod": "Longueur totale : du bout du museau à l'extrémité de la nageoire caudale.",
+    "peakMonths": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ]
+  },
+  {
+    "id": "spondyliosoma-cantharus",
+    "commonName": "Dorade grise",
+    "scientificName": "Spondyliosoma cantharus",
+    "aliases": [
+      "dorade grise",
+      "griset"
+    ],
+    "category": "fish",
+    "environment": "sea",
+    "measureMethod": "Longueur totale : du bout du museau à l'extrémité de la nageoire caudale.",
+    "peakMonths": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "id": "pagellus-bogaraveo",
+    "commonName": "Dorade rose",
+    "scientificName": "Pagellus bogaraveo",
+    "aliases": [
+      "pageot rose",
+      "dorade rose"
+    ],
+    "category": "fish",
+    "environment": "sea",
+    "measureMethod": "Longueur totale : du bout du museau à l'extrémité de la nageoire caudale.",
+    "peakMonths": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "id": "diplodus-sargus",
+    "commonName": "Sar commun",
+    "scientificName": "Diplodus sargus",
+    "aliases": [
+      "sar",
+      "sar commun"
+    ],
+    "category": "fish",
+    "environment": "sea",
+    "measureMethod": "Longueur totale : du bout du museau à l'extrémité de la nageoire caudale.",
+    "peakMonths": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ]
+  },
+  {
+    "id": "pagellus-erythrinus",
+    "commonName": "Pageot commun",
+    "scientificName": "Pagellus erythrinus",
+    "aliases": [
+      "pageot",
+      "pageot rouge"
+    ],
+    "category": "fish",
+    "environment": "sea",
+    "measureMethod": "Longueur totale : du bout du museau à l'extrémité de la nageoire caudale.",
+    "peakMonths": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "id": "pagrus-pagrus",
+    "commonName": "Pagre commun",
+    "scientificName": "Pagrus pagrus",
+    "aliases": [
+      "pagre"
+    ],
+    "category": "fish",
+    "environment": "sea",
+    "measureMethod": "Longueur totale : du bout du museau à l'extrémité de la nageoire caudale.",
+    "peakMonths": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "id": "lithognathus-mormyrus",
+    "commonName": "Marbré",
+    "scientificName": "Lithognathus mormyrus",
+    "aliases": [
+      "marbré",
+      "marbre"
+    ],
+    "category": "fish",
+    "environment": "sea",
+    "measureMethod": "Longueur totale : du bout du museau à l'extrémité de la nageoire caudale.",
+    "peakMonths": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "id": "argyrosomus-regius",
+    "commonName": "Maigre",
+    "scientificName": "Argyrosomus regius",
+    "aliases": [
+      "maigre",
+      "courbine"
+    ],
+    "category": "fish",
+    "environment": "sea",
+    "measureMethod": "Longueur totale : du bout du museau à l'extrémité de la nageoire caudale.",
+    "peakMonths": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "id": "solea-solea",
+    "commonName": "Sole commune",
+    "scientificName": "Solea solea",
+    "aliases": [
+      "sole"
+    ],
+    "category": "fish",
+    "environment": "sea",
+    "measureMethod": "Longueur totale : du bout du museau à l'extrémité de la nageoire caudale.",
+    "peakMonths": [
+      4,
+      5,
+      6,
+      9,
+      10,
+      11
+    ]
+  },
+  {
+    "id": "pleuronectes-platessa",
+    "commonName": "Plie (Carrelet)",
+    "scientificName": "Pleuronectes platessa",
+    "aliases": [
+      "plie",
+      "carrelet"
+    ],
+    "category": "fish",
+    "environment": "sea",
+    "measureMethod": "Longueur totale : du bout du museau à l'extrémité de la nageoire caudale.",
+    "peakMonths": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "id": "scophthalmus-maximus",
+    "commonName": "Turbot",
+    "scientificName": "Scophthalmus maximus",
+    "aliases": [
+      "turbot"
+    ],
+    "category": "fish",
+    "environment": "sea",
+    "measureMethod": "Longueur totale : du bout du museau à l'extrémité de la nageoire caudale.",
+    "peakMonths": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "id": "scophthalmus-rhombus",
+    "commonName": "Barbue",
+    "scientificName": "Scophthalmus rhombus",
+    "aliases": [
+      "barbue"
+    ],
+    "category": "fish",
+    "environment": "sea",
+    "measureMethod": "Longueur totale : du bout du museau à l'extrémité de la nageoire caudale.",
+    "peakMonths": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "id": "scomber-scombrus",
+    "commonName": "Maquereau commun",
+    "scientificName": "Scomber scombrus",
+    "aliases": [
+      "maquereau"
+    ],
+    "category": "fish",
+    "environment": "sea",
+    "measureMethod": "Longueur totale : du bout du museau à l'extrémité de la nageoire caudale.",
+    "peakMonths": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "id": "conger-conger",
+    "commonName": "Congre",
+    "scientificName": "Conger conger",
+    "aliases": [
+      "congre"
+    ],
+    "category": "fish",
+    "environment": "sea",
+    "measureMethod": "Longueur totale : du bout du museau à l'extrémité de la queue.",
+    "peakMonths": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "id": "mullus-surmuletus",
+    "commonName": "Rouget-barbet",
+    "scientificName": "Mullus surmuletus",
+    "aliases": [
+      "rouget",
+      "rouget de roche",
+      "rouget barbet"
+    ],
+    "category": "fish",
+    "environment": "sea",
+    "measureMethod": "Longueur totale : du bout du museau à l'extrémité de la nageoire caudale.",
+    "peakMonths": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "id": "scorpaena-scrofa",
+    "commonName": "Chapon (Rascasse rouge)",
+    "scientificName": "Scorpaena scrofa",
+    "aliases": [
+      "chapon",
+      "rascasse rouge",
+      "rascasse"
+    ],
+    "category": "fish",
+    "environment": "sea",
+    "measureMethod": "Longueur totale : du bout du museau à l'extrémité de la nageoire caudale.",
+    "peakMonths": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "id": "melanogrammus-aeglefinus",
+    "commonName": "Églefin (Aiglefin)",
+    "scientificName": "Melanogrammus aeglefinus",
+    "aliases": [
+      "églefin",
+      "eglefin",
+      "aiglefin",
+      "haddock"
+    ],
+    "category": "fish",
+    "environment": "sea",
+    "measureMethod": "Longueur totale : du bout du museau à l'extrémité de la nageoire caudale.",
+    "peakMonths": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "id": "clupea-harengus",
+    "commonName": "Hareng",
+    "scientificName": "Clupea harengus",
+    "aliases": [
+      "hareng"
+    ],
+    "category": "fish",
+    "environment": "sea",
+    "measureMethod": "Longueur totale : du bout du museau à l'extrémité de la nageoire caudale.",
+    "peakMonths": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "id": "chelon-labrosus",
+    "commonName": "Mulet (Muge)",
+    "scientificName": "Chelon labrosus",
+    "aliases": [
+      "mulet",
+      "mulet porc",
+      "mulet lippu",
+      "muge"
+    ],
+    "category": "fish",
+    "environment": "sea",
+    "measureMethod": "Longueur totale : du bout du museau à l'extrémité de la nageoire caudale.",
+    "peakMonths": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "id": "trachurus-trachurus",
+    "commonName": "Chinchard",
+    "scientificName": "Trachurus trachurus",
+    "aliases": [
+      "chinchard",
+      "saurel"
+    ],
+    "category": "fish",
+    "environment": "sea",
+    "measureMethod": "Longueur totale : du bout du museau à l'extrémité de la nageoire caudale.",
+    "peakMonths": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "id": "sardina-pilchardus",
+    "commonName": "Sardine",
+    "scientificName": "Sardina pilchardus",
+    "aliases": [
+      "sardine",
+      "pilchard"
+    ],
+    "category": "fish",
+    "environment": "sea",
+    "measureMethod": "Longueur totale : du bout du museau à l'extrémité de la nageoire caudale.",
+    "peakMonths": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "id": "engraulis-encrasicolus",
+    "commonName": "Anchois",
+    "scientificName": "Engraulis encrasicolus",
+    "aliases": [
+      "anchois"
+    ],
+    "category": "fish",
+    "environment": "sea",
+    "measureMethod": "Longueur totale : du bout du museau à l'extrémité de la nageoire caudale.",
+    "peakMonths": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "id": "merluccius-merluccius",
+    "commonName": "Merlu",
+    "scientificName": "Merluccius merluccius",
+    "aliases": [
+      "merlu",
+      "colin"
+    ],
+    "category": "fish",
+    "environment": "sea",
+    "measureMethod": "Longueur totale : du bout du museau à l'extrémité de la nageoire caudale.",
+    "peakMonths": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "id": "molva-molva",
+    "commonName": "Lingue (Julienne)",
+    "scientificName": "Molva molva",
+    "aliases": [
+      "lingue",
+      "julienne",
+      "lingue franche"
+    ],
+    "category": "fish",
+    "environment": "sea",
+    "measureMethod": "Longueur totale : du bout du museau à l'extrémité de la nageoire caudale.",
+    "peakMonths": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "id": "alosa-alosa",
+    "commonName": "Alose",
+    "scientificName": "Alosa alosa",
+    "aliases": [
+      "alose",
+      "grande alose",
+      "alose feinte"
+    ],
+    "category": "fish",
+    "environment": "sea",
+    "measureMethod": "Longueur totale : du bout du museau à l'extrémité de la nageoire caudale.",
+    "peakMonths": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "id": "homarus-gammarus",
+    "commonName": "Homard européen",
+    "scientificName": "Homarus gammarus",
+    "aliases": [
+      "homard",
+      "homard breton"
+    ],
+    "category": "crustacean",
+    "environment": "sea",
+    "measureMethod": "Longueur céphalothoracique (LC) : de l'arrière de l'orbite oculaire au bord postérieur de la carapace (hors queue).",
+    "peakMonths": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "id": "palinurus-elephas",
+    "commonName": "Langouste rouge",
+    "scientificName": "Palinurus elephas",
+    "aliases": [
+      "langouste",
+      "langouste rouge"
+    ],
+    "category": "crustacean",
+    "environment": "sea",
+    "measureMethod": "Longueur céphalothoracique (LC) : de la pointe du rostre (entre les yeux) au bord postérieur du céphalothorax.",
+    "peakMonths": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "id": "nephrops-norvegicus",
+    "commonName": "Langoustine",
+    "scientificName": "Nephrops norvegicus",
+    "aliases": [
+      "langoustine",
+      "demoiselle"
+    ],
+    "category": "crustacean",
+    "environment": "sea",
+    "measureMethod": "Longueur totale (LT) : de la pointe du rostre à l'extrémité du telson (queue).",
+    "peakMonths": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ]
+  },
+  {
+    "id": "maja-brachydactyla",
+    "commonName": "Araignée de mer",
+    "scientificName": "Maja brachydactyla",
+    "aliases": [
+      "araignée",
+      "araignee",
+      "maja"
+    ],
+    "category": "crustacean",
+    "environment": "sea",
+    "measureMethod": "Longueur de la carapace : mesurée sur la ligne médiane, de l'avant (entre les yeux) à l'arrière, sans les épines.",
+    "peakMonths": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ]
+  },
+  {
+    "id": "cancer-pagurus",
+    "commonName": "Tourteau (Dormeur)",
+    "scientificName": "Cancer pagurus",
+    "aliases": [
+      "tourteau",
+      "dormeur",
+      "crabe dormeur"
+    ],
+    "category": "crustacean",
+    "environment": "sea",
+    "measureMethod": "Largeur maximale de la carapace : mesurée transversalement d'un bord à l'autre.",
+    "peakMonths": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "id": "necora-puber",
+    "commonName": "Étrille",
+    "scientificName": "Necora puber",
+    "aliases": [
+      "étrille",
+      "etrille",
+      "crabe nageur"
+    ],
+    "category": "crustacean",
+    "environment": "sea",
+    "measureMethod": "Largeur maximale de la carapace : mesurée transversalement d'une pointe latérale à l'autre.",
+    "peakMonths": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "id": "palaemon-serratus",
+    "commonName": "Bouquet (Crevette rose)",
+    "scientificName": "Palaemon serratus",
+    "aliases": [
+      "bouquet",
+      "crevette rose",
+      "crevette"
+    ],
+    "category": "crustacean",
+    "environment": "sea",
+    "measureMethod": "Longueur totale : de la pointe du rostre jusqu'à l'extrémité du telson (queue).",
+    "peakMonths": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "id": "cerastoderma-edule",
+    "commonName": "Coque commune",
+    "scientificName": "Cerastoderma edule",
+    "aliases": [
+      "coque",
+      "coques"
+    ],
+    "category": "shellfish",
+    "environment": "sea",
+    "measureMethod": "Plus grande dimension de la coquille (largeur maximale).",
+    "peakMonths": [
+      1,
+      2,
+      3,
+      4,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "id": "ruditapes-decussatus",
+    "commonName": "Palourde européenne",
+    "scientificName": "Ruditapes decussatus",
+    "aliases": [
+      "palourde",
+      "palourde grise"
+    ],
+    "category": "shellfish",
+    "environment": "sea",
+    "measureMethod": "Plus grande dimension de la coquille (longueur maximale).",
+    "peakMonths": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "id": "ruditapes-philippinarum",
+    "commonName": "Palourde japonaise",
+    "scientificName": "Ruditapes philippinarum",
+    "aliases": [
+      "palourde japonaise"
+    ],
+    "category": "shellfish",
+    "environment": "sea",
+    "measureMethod": "Plus grande dimension de la coquille (longueur maximale).",
+    "peakMonths": [
+      1,
+      2,
+      3,
+      4,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "id": "pecten-maximus",
+    "commonName": "Coquille Saint-Jacques",
+    "scientificName": "Pecten maximus",
+    "aliases": [
+      "saint-jacques",
+      "csj"
+    ],
+    "category": "shellfish",
+    "environment": "sea",
+    "measureMethod": "Plus grande dimension de la coquille (largeur ou hauteur maximale).",
+    "peakMonths": [
+      10,
+      11,
+      12,
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  {
+    "id": "mytilus-edulis",
+    "commonName": "Moule commune",
+    "scientificName": "Mytilus edulis",
+    "aliases": [
+      "moule",
+      "moules"
+    ],
+    "category": "shellfish",
+    "environment": "sea",
+    "measureMethod": "Plus grande dimension de la coquille (de la pointe au bord opposé).",
+    "peakMonths": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "id": "magallana-gigas",
+    "commonName": "Huître creuse",
+    "scientificName": "Magallana gigas",
+    "aliases": [
+      "huître",
+      "huitre",
+      "huître creuse"
+    ],
+    "category": "shellfish",
+    "environment": "sea",
+    "measureMethod": "Plus grande dimension de la coquille.",
+    "peakMonths": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "id": "venus-verrucosa",
+    "commonName": "Praire",
+    "scientificName": "Venus verrucosa",
+    "aliases": [
+      "praire",
+      "praires"
+    ],
+    "category": "shellfish",
+    "environment": "sea",
+    "measureMethod": "Plus grande dimension de la coquille (longueur maximale).",
+    "peakMonths": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "id": "donax-trunculus",
+    "commonName": "Telline (Olive de mer)",
+    "scientificName": "Donax trunculus",
+    "aliases": [
+      "telline",
+      "olive de mer"
+    ],
+    "category": "shellfish",
+    "environment": "sea",
+    "measureMethod": "Plus grande dimension de la coquille (longueur maximale).",
+    "peakMonths": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "id": "ensis-siliqua",
+    "commonName": "Couteau",
+    "scientificName": "Ensis siliqua",
+    "aliases": [
+      "couteau",
+      "couteaux"
+    ],
+    "category": "shellfish",
+    "environment": "sea",
+    "measureMethod": "Longueur totale de la coquille (d'une extrémité à l'autre).",
+    "peakMonths": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "id": "buccinum-undatum",
+    "commonName": "Bulot (Buccin)",
+    "scientificName": "Buccinum undatum",
+    "aliases": [
+      "bulot",
+      "buccin"
+    ],
+    "category": "shellfish",
+    "environment": "sea",
+    "measureMethod": "Hauteur de la coquille : de la pointe (apex) à l'extrémité du canal siphonal.",
+    "peakMonths": [
+      1,
+      2,
+      3,
+      4,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "id": "haliotis-tuberculata",
+    "commonName": "Ormeau",
+    "scientificName": "Haliotis tuberculata",
+    "aliases": [
+      "ormeau",
+      "ormeaux",
+      "oreille de mer"
+    ],
+    "category": "shellfish",
+    "environment": "sea",
+    "measureMethod": "Plus grande longueur de la coquille.",
+    "peakMonths": [
+      1,
+      2,
+      3,
+      4,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "id": "octopus-vulgaris",
+    "commonName": "Poulpe commun",
+    "scientificName": "Octopus vulgaris",
+    "aliases": [
+      "poulpe",
+      "pieuvre"
+    ],
+    "category": "cephalopod",
+    "environment": "sea",
+    "measureMethod": "Pesée (poids minimal en grammes / kg) — pas de mesure de longueur.",
+    "peakMonths": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "id": "sepia-officinalis",
+    "commonName": "Seiche commune",
+    "scientificName": "Sepia officinalis",
+    "aliases": [
+      "seiche",
+      "encornet",
+      "calmar"
+    ],
+    "category": "cephalopod",
+    "environment": "sea",
+    "measureMethod": "Longueur du manteau (os de seiche / corps sans les tentacules).",
+    "peakMonths": [
+      4,
+      5,
+      6,
+      9,
+      10
+    ]
+  },
+  {
+    "id": "salmo-trutta",
+    "commonName": "Truite fario",
+    "scientificName": "Salmo trutta fario",
+    "aliases": [
+      "truite",
+      "fario",
+      "truite commune"
+    ],
+    "category": "fish",
+    "environment": "freshwater",
+    "measureMethod": "Longueur totale : du bout du museau à l'extrémité de la nageoire caudale.",
+    "peakMonths": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ]
+  },
+  {
+    "id": "esox-lucius",
+    "commonName": "Brochet",
+    "scientificName": "Esox lucius",
+    "aliases": [
+      "brochet",
+      "bec",
+      "carnassier"
+    ],
+    "category": "fish",
+    "environment": "freshwater",
+    "measureMethod": "Longueur totale : du bout du museau à l'extrémité de la nageoire caudale.",
+    "peakMonths": [
+      5,
+      6,
+      9,
+      10,
+      11,
+      12,
+      1
+    ]
+  },
+  {
+    "id": "sander-lucioperca",
+    "commonName": "Sandre",
+    "scientificName": "Sander lucioperca",
+    "aliases": [
+      "sandre",
+      "carnassier"
+    ],
+    "category": "fish",
+    "environment": "freshwater",
+    "measureMethod": "Longueur totale : du bout du museau à l'extrémité de la nageoire caudale.",
+    "peakMonths": [
+      5,
+      6,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "id": "perca-fluviatilis",
+    "commonName": "Perche commune",
+    "scientificName": "Perca fluviatilis",
+    "aliases": [
+      "perche",
+      "perche franche"
+    ],
+    "category": "fish",
+    "environment": "freshwater",
+    "measureMethod": "Longueur totale : du bout du museau à l'extrémité de la nageoire caudale.",
+    "peakMonths": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ]
+  },
+  {
+    "id": "micropterus-salmoides",
+    "commonName": "Black-bass",
+    "scientificName": "Micropterus salmoides",
+    "aliases": [
+      "black-bass",
+      "achigan",
+      "bass"
+    ],
+    "category": "fish",
+    "environment": "freshwater",
+    "measureMethod": "Longueur totale : du bout du museau à l'extrémité de la nageoire caudale.",
+    "peakMonths": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "id": "cyprinus-carpio",
+    "commonName": "Carpe commune",
+    "scientificName": "Cyprinus carpio",
+    "aliases": [
+      "carpe",
+      "carpe miroir",
+      "carpe cuir"
+    ],
+    "category": "fish",
+    "environment": "freshwater",
+    "measureMethod": "Longueur totale : du bout du museau à l'extrémité de la nageoire caudale.",
+    "peakMonths": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "id": "thymallus-thymallus",
+    "commonName": "Ombre commun",
+    "scientificName": "Thymallus thymallus",
+    "aliases": [
+      "ombre",
+      "ombre commun"
+    ],
+    "category": "fish",
+    "environment": "freshwater",
+    "measureMethod": "Longueur totale : du bout du museau à l'extrémité de la nageoire caudale.",
+    "peakMonths": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ]
+  },
+  {
+    "id": "salmo-salar",
+    "commonName": "Saumon atlantique",
+    "scientificName": "Salmo salar",
+    "aliases": [
+      "saumon",
+      "saumon atlantique"
+    ],
+    "category": "fish",
+    "environment": "both",
+    "measureMethod": "Longueur totale : du bout du museau à l'extrémité de la nageoire caudale.",
+    "peakMonths": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ]
+  },
+  {
+    "id": "thunnus-thynnus",
+    "commonName": "Thon rouge",
+    "scientificName": "Thunnus thynnus",
+    "aliases": [
+      "thon rouge",
+      "thon",
+      "bft"
+    ],
+    "category": "fish",
+    "environment": "sea",
+    "measureMethod": "Longueur à la fourche : de la pointe du museau à l'extrémité des rayons centraux de la nageoire caudale (ou poids vif ≥ 30 kg).",
+    "peakMonths": [
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "id": "sciaena-umbra",
+    "commonName": "Corb",
+    "scientificName": "Sciaena umbra",
+    "aliases": [
+      "corb",
+      "corb commun",
+      "corbeau de mer"
+    ],
+    "category": "fish",
+    "environment": "sea",
+    "measureMethod": "Longueur totale : du bout du museau à l'extrémité de la nageoire caudale (queue déployée).",
+    "peakMonths": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  }
+]

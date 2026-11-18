@@ -1,0 +1,37 @@
+{
+  "name": "app-peche-france",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "data:fetch": "node data-pipeline/fetch-datagouv.mjs",
+    "data:optimize": "node data-pipeline/optimize-zones.mjs",
+    "data:sync-public": "node data-pipeline/sync-public.mjs",
+    "cap:sync": "npm run build && npx cap sync android",
+    "test:data": "node --test tests/data-pipeline.test.mjs",
+    "test:e2e": "playwright test",
+    "test": "npm run test:data && npm run build && npm run test:e2e"
+  },
+  "dependencies": {
+    "@capacitor/core": "^7.2.0",
+    "idb": "^8.0.2",
+    "lucide-react": "^0.511.0",
+    "maplibre-gl": "^5.5.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^7.2.0",
+    "@capacitor/cli": "^7.2.0",
+    "@playwright/test": "^1.65.1",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.1",
+    "@vitejs/plugin-react": "^4.4.1",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5",
+    "vite-plugin-pwa": "^1.0.0"
+  }
+}

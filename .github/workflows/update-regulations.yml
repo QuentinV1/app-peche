@@ -1,0 +1,42 @@
+name: Mise à jour des réglementations pêche
+
+on:
+  schedule:
+    # Exécution automatique quotidienne à 06:00 UTC (07:00/08:00 heure de Paris)
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+    # Déclenchement manuel possible à tout moment depuis l'onglet Actions
+
+permissions:
+  contents: write
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Récupérer les dernières données data.gouv.fr (CACEM & CNSP)
+        run: node data-pipeline/fetch-datagouv.mjs --force
+
+      - name: Découper par façade, simplifier et générer le bundle versionné
+        run: node data-pipeline/build-bundle.mjs
+
+      - name: Publier les mises à jour si les données ont changé
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/facades data/manifest.json data/species.json data/regulations.json data/alerts.json public/data
+          if git diff --cached --quiet; then
+            echo "Aucune modification réglementaire détectée."
+          else
+            VERSION=$(node -e "console.log(JSON.parse(require('fs').readFileSync('data/manifest.json','utf8')).version)")
+            git commit -m "chore(data): mise à jour réglementations ($VERSION)"
+            git push
+          fi

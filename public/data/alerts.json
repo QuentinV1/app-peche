@@ -1,0 +1,16 @@
+[
+  {
+    "id": "alert-29-pont-labbe-loisir",
+    "zoneName": "Gisement de la rivière de Pont-l'Abbé (Île-Tudy / Loctudy)",
+    "departmentCode": "29",
+    "commune": "Île-Tudy",
+    "status": "closed",
+    "reason": "Fermeture de la pêche à pied de loisir pour reconstitution des gisements (l'interdiction loisir reste maintenue même en cas de levée partielle pour les professionnels).",
+    "speciesAffected": ["Coque commune", "Palourde", "Moule", "Huître"],
+    "recreationalBanned": true,
+    "sourceName": "Préfecture du Finistère / CACEM (Arrêté du 06 juillet 2023)",
+    "sourceUrl": "https://www.finistere.gouv.fr/",
+    "effectiveDate": "2023-07-06",
+    "lastCheckedAt": "2026-11-17T12:00:00Z"
+  }
+]

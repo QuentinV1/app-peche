@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Pêche France</string>
+    <string name="title_activity_main">Pêche France</string>
+    <string name="package_name">fr.pecheloisir.app</string>
+    <string name="custom_url_scheme">fr.pecheloisir.app</string>
+</resources>
