@@ -22,22 +22,22 @@ export default defineConfig({
         background_color: '#f4f8fb',
         display: 'standalone',
         orientation: 'portrait',
-        start_url: '/',
+        start_url: './',
         icons: [
           {
-            src: '/icons/icon-192.png',
+            src: 'icons/icon-192.png',
             sizes: '192x192',
             type: 'image/png',
             purpose: 'any maskable',
           },
           {
-            src: '/icons/icon-512.png',
+            src: 'icons/icon-512.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any maskable',
           },
           {
-            src: '/icons/icon-192.svg',
+            src: 'icons/icon-192.svg',
             sizes: '192x192',
             type: 'image/svg+xml',
             purpose: 'any',
