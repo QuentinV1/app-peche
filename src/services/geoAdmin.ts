@@ -82,7 +82,7 @@ export async function loadAdminLayer(
   }
 
   try {
-    const res = await fetch(`/data/admin/${type}.geojson`);
+    const res = await fetch(`${import.meta.env.BASE_URL}data/admin/${type}.geojson`);
     if (!res.ok) throw new Error(`Impossible de charger ${type}.geojson`);
     const data = (await res.json()) as FeatureCollection<Geometry, AdminProperties>;
     await db.put('datasets', data, key);

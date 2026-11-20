@@ -16,9 +16,10 @@ export const SESSIONS_STORE = 'sessions';
 
 /**
  * URL de base distante optionnelle (ex: GitHub Pages / CDN) pour les mises à jour
- * OTA sans recompiler l'APK. Retombe sur '/data' (bundle local PWA/APK).
+ * OTA. Retombe sur `${BASE_URL}data/...` (bundle local PWA).
  */
 const REMOTE_BASE = (import.meta.env.VITE_DATA_BASE_URL as string | undefined)?.replace(/\/$/, '');
+const LOCAL_DATA_BASE = `${import.meta.env.BASE_URL}data`;
 
 export async function getDb() {
   return openDB(DB_NAME, DB_VERSION, {
@@ -37,7 +38,8 @@ export async function getDb() {
 }
 
 export async function fetchJson<T>(relativePath: string): Promise<T> {
-  const urls = REMOTE_BASE ? [`${REMOTE_BASE}/${relativePath}`, `/data/${relativePath}`] : [`/data/${relativePath}`];
+  const localUrl = `${LOCAL_DATA_BASE}/${relativePath}`;
+  const urls = REMOTE_BASE ? [`${REMOTE_BASE}/${relativePath}`, localUrl] : [localUrl];
   let lastErr: unknown;
   for (const url of urls) {
     try {

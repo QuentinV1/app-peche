@@ -1,4 +1,4 @@
-# Instructions du Projet — Application Pêche France (PWA & APK)
+# Instructions du Projet — Application Pêche France (PWA)
 
 > **Règle de persistance** : Ce fichier (`instruction.md`) ainsi que `plan.md` sont des documents structurants du projet. **Ils ne doivent jamais être supprimés.** Toute évolution majeure d'architecture, de périmètre ou de choix technique doit être reflétée ici et dans `plan.md`.
 
@@ -22,10 +22,9 @@
 
 ## 2. Contraintes Techniques Impératives
 
-### 2.1 Parité stricte Android (`.apk`) et iOS (`.pwa`)
-- Les deux cibles (**Android `.apk`** et **iPhone `.pwa`**) doivent être **strictement identiques** (même interface, mêmes fonctionnalités, mêmes données) et **développées simultanément à partir d'un codebase unique**.
-- **Stack recommandée** : Application Web moderne (ex. **React + TypeScript + Vite**) + **PWA** (`vite-plugin-pwa`, Service Worker, Web App Manifest, icônes iOS) encapsulée avec **Capacitor** pour générer le `.apk` Android natif.
-- Toute fonctionnalité ajoutée doit fonctionner à la fois dans le navigateur/PWA (iOS Safari) et dans la WebView Capacitor (Android). Éviter les dépendances natives Android qui n'ont pas d'équivalent Web/PWA sans fallback propre.
+### 2.1 Cible unique PWA (iOS & Android)
+- L'application est distribuée exclusivement sous forme de **PWA** (iOS Safari & Android Chrome/Edge) à partir d'un codebase unique (**React + TypeScript + Vite** + `vite-plugin-pwa`, Service Worker, Web App Manifest, icônes iOS/Android).
+- L'ancien packaging natif Android (`.apk` / Capacitor) a été supprimé au profit de la PWA unifiée.
 
 ### 2.2 Fraîcheur des données & Mode Hors-Ligne
 - Les réglementations doivent être **mises à jour le plus souvent possible** via un pipeline automatisé (détection de mises à jour sur les portails officiels + versioning des données).

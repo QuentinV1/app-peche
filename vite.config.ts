@@ -18,10 +18,12 @@ export default defineConfig({
         name: 'Pêche France — Réglementation',
         short_name: 'Pêche France',
         description: 'Réglementation de la pêche de loisir en France : mailles, quotas, arrêtés et zones.',
-        theme_color: '#0b4f6c',
-        background_color: '#f4f8fb',
+        lang: 'fr',
+        theme_color: '#062f44',
+        background_color: '#f4f7fb',
         display: 'standalone',
         orientation: 'portrait',
+        scope: './',
         start_url: './',
         icons: [
           {

@@ -64,7 +64,7 @@ Objectif : garantir **100 % de parité** entre la PWA iPhone et l'APK Android av
 
 - [x] **1.1** Initialiser le projet **Vite + React + TypeScript** (`package.json`, `tsconfig.json`, `src/App.tsx`).
 - [x] **1.2** Configurer **PWA** (`vite-plugin-pwa`) : `manifest.webmanifest`, Service Worker (stratégie *Stale-While-Revalidate* / cache offline des règles et cartes), méta-tags Apple (`apple-touch-icon`, `apple-mobile-web-app-capable`).
-- [x] **1.3** Configurer **Capacitor** (`@capacitor/core`, `@capacitor/android`) : projet `android/` généré et synchronisé avec `dist/`.
+- [x] **1.3** ~~Configurer Capacitor (`.apk` Android)~~ *(Supprimé : distribution unifiée en PWA uniquement)*.
 - [x] **1.4** Moteur cartographique compatible Web/PWA + WebView Android : **MapLibre GL JS** (`src/components/FranceMap.tsx`, zoom par façade + raccourci Le Guilvinec / Île-Tudy).
 - [x] **1.5** Stockage local persistant hors-ligne (`src/services/dataStore.ts` avec IndexedDB via `idb`).
 
@@ -98,8 +98,8 @@ Objectif : automatiser la récupération, la normalisation et la publication des
 
 - [x] **4.1** Tests automatisés du pipeline de données (`tests/data-pipeline.test.mjs` : validation de schéma JSON/GeoJSON, intégrité SHA-256 `data/` ↔ `public/data/`, non-régression sur les mailles).
 - [x] **4.2** Tests E2E sur les parcours clés (`tests/e2e/app.spec.ts` : sélection commune/département -> alerte -> mailles par façade -> mode hors-ligne IndexedDB/SW).
-- [ ] **4.3** Build & test **PWA sur iOS Safari** : build PWA + icônes PNG (`apple-touch-icon.png` 180×180, `icon-192.png`, `icon-512.png`) + Safe Area prêts ; reste le test physique sur iPhone Safari (ajout écran d'accueil & hors-ligne).
-- [ ] **4.4** Build & signature du **`.apk` Android** via Capacitor + Gradle : `app-debug.apk` compilé (`android/app/build/outputs/apk/debug/app-debug.apk`) ; reste le déploiement/test sur appareil réel Android (S25 Ultra) et la signature release si distribution hors debug.
+- [ ] **4.3** Build & test **PWA sur iOS Safari / Android** : build PWA + icônes PNG (`apple-touch-icon.png` 180×180, `icon-192.png`, `icon-512.png`) + Safe Area prêts ; reste le test physique sur iPhone Safari (ajout écran d'accueil & hors-ligne).
+- [x] **4.4** ~~Build & signature du `.apk` Android~~ *(Supprimé : `.apk` et projet `android/` retirés, PWA alignée sur le rendu et le fonctionnement mobile)*.
 
 ---
 
