@@ -1,55 +1,55 @@
 import { useState, type FormEvent } from 'react';
 import type { User } from 'firebase/auth';
 import {
-  CheckCircle2,
   Cloud,
   LogOut,
-  Mail,
   RefreshCw,
-  ShieldAlert,
   X,
 } from 'lucide-react';
 import {
   formatAuthError,
+  reloadFirebaseUser,
   resendVerificationEmail,
   signInWithEmail,
   signInWithGoogle,
   signOutUser,
   signUpWithEmail,
 } from '../services/firebase';
+import {
+  activerSyncCloud,
+  forcerSyncCloud,
+  reinitialiserEtatCloud,
+  type CloudState,
+} from '../services/cloudSync';
 
 interface AuthModalProps {
   open: boolean;
   user: User | null;
-  syncing: boolean;
-  syncMessage: string | null;
-  syncError: string | null;
+  cloud: CloudState;
   onClose: () => void;
-  onSyncNow: () => Promise<void>;
+  onUserUpdated: (user: User | null) => void;
 }
 
 export function AuthModal({
   open,
   user,
-  syncing,
-  syncMessage,
-  syncError,
+  cloud,
   onClose,
-  onSyncNow,
+  onUserUpdated,
 }: AuthModalProps) {
-  const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [info, setInfo] = useState<string | null>(null);
+  const [unverifiedMsg, setUnverifiedMsg] = useState<string>(
+    'Vérifiez votre boîte mail (ou utilisez « Continuer avec Google »).',
+  );
 
   if (!open) return null;
 
   const handleGoogle = async () => {
     setBusy(true);
     setError(null);
-    setInfo(null);
     try {
       await signInWithGoogle();
       onClose();
@@ -60,49 +60,19 @@ export function AuthModal({
     }
   };
 
-  const handleEmailSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!email.trim() || !password) return;
+  const handleEmailAuth = async (isRegister: boolean) => {
+    if (!email.trim() || !password) {
+      setError('Veuillez saisir votre e-mail et votre mot de passe.');
+      return;
+    }
     setBusy(true);
     setError(null);
-    setInfo(null);
     try {
-      if (mode === 'login') {
-        await signInWithEmail(email, password);
-        onClose();
-      } else {
+      if (isRegister) {
         await signUpWithEmail(email, password);
-        setInfo(
-          'Compte créé ! Un e-mail de vérification vient d’être envoyé. Valide ton adresse puis reconnecte-toi.',
-        );
+      } else {
+        await signInWithEmail(email, password);
       }
-    } catch (err) {
-      setError(formatAuthError(err));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const handleResendVerification = async () => {
-    if (!user) return;
-    setBusy(true);
-    setError(null);
-    setInfo(null);
-    try {
-      await resendVerificationEmail(user);
-      setInfo('E-mail de vérification renvoyé. Vérifie ta boîte de réception.');
-    } catch (err) {
-      setError(formatAuthError(err));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const handleSignOut = async () => {
-    setBusy(true);
-    setError(null);
-    try {
-      await signOutUser();
       onClose();
     } catch (err) {
       setError(formatAuthError(err));
@@ -111,9 +81,96 @@ export function AuthModal({
     }
   };
 
+  const handleFormSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    handleEmailAuth(false);
+  };
+
+  const handleResendVerification = async () => {
+    setBusy(true);
+    try {
+      const sent = await resendVerificationEmail();
+      setUnverifiedMsg(
+        sent
+          ? "E-mail de vérification envoyé ! Vérifiez votre boîte de réception (et les spams), puis cliquez sur « J'ai vérifié »."
+          : 'Votre adresse est déjà vérifiée.',
+      );
+    } catch (err) {
+      setUnverifiedMsg(formatAuthError(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleCheckVerification = async () => {
+    setBusy(true);
+    try {
+      const refreshed = await reloadFirebaseUser();
+      if (refreshed?.emailVerified) {
+        await refreshed.getIdToken(true);
+        onUserUpdated(refreshed);
+        await activerSyncCloud();
+      } else {
+        setUnverifiedMsg(
+          "Adresse toujours non vérifiée. Cliquez d'abord sur le lien reçu par e-mail.",
+        );
+      }
+    } catch (err) {
+      setUnverifiedMsg(formatAuthError(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleSyncNow = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      await forcerSyncCloud();
+    } catch (err) {
+      setError(formatAuthError(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    if (!window.confirm('Se déconnecter du compte Cloud ?')) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await signOutUser();
+      reinitialiserEtatCloud();
+      onUserUpdated(null);
+      onClose();
+    } catch (err) {
+      setError(formatAuthError(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const totalSyncedItems = (cloud.catchesCount || 0) + (cloud.sessionsCount || 0);
+  const statusLabel = (() => {
+    if (cloud.syncStatus === 'syncing') return 'Synchronisation en cours…';
+    if (cloud.syncStatus === 'error') return 'Erreur de synchronisation';
+    if (cloud.initialSyncDone || cloud.syncStatus === 'synced') {
+      return `Synchronisé (${totalSyncedItems} élément${totalSyncedItems > 1 ? 's' : ''})`;
+    }
+    return 'Connexion au Cloud…';
+  })();
+
+  const statusColor = (() => {
+    if (cloud.syncStatus === 'syncing') return '#d97706';
+    if (cloud.syncStatus === 'error') return '#dc2626';
+    if (cloud.initialSyncDone || cloud.syncStatus === 'synced') return '#059669';
+    return 'var(--muted)';
+  })();
+
   return (
     <div
       className="auth-modal-backdrop"
+      id="modal-auth"
       role="dialog"
       aria-modal="true"
       aria-labelledby="auth-modal-title"
@@ -121,8 +178,9 @@ export function AuthModal({
     >
       <div className="auth-modal" onClick={(e) => e.stopPropagation()}>
         <div className="auth-modal-head">
-          <h2 id="auth-modal-title">
-            {user ? 'Compte & Synchronisation' : 'Connexion Pêche France'}
+          <h2 id="auth-modal-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Cloud size={20} color="var(--ocean)" />
+            <span>Compte Cloud Pêche France</span>
           </h2>
           <button
             type="button"
@@ -135,162 +193,175 @@ export function AuthModal({
         </div>
 
         {user ? (
-          <div className="auth-account-body">
-            <div className="auth-user-card">
-              {user.photoURL ? (
-                <img
-                  src={user.photoURL}
-                  alt=""
-                  className="auth-avatar"
-                  referrerPolicy="no-referrer"
-                />
-              ) : (
-                <div className="auth-avatar auth-avatar-fallback">
-                  {(user.displayName ?? user.email ?? 'P')[0].toUpperCase()}
-                </div>
-              )}
-              <div className="auth-user-meta">
-                <strong>{user.displayName || 'Pêcheur'}</strong>
-                <span>{user.email}</span>
-              </div>
+          <div className="auth-account-body" id="auth-logged-in-panel">
+            <div className="auth-user-card" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
+              <span style={{ fontSize: '0.73rem', color: 'var(--muted)', textTransform: 'uppercase', fontWeight: 700 }}>
+                Connecté en tant que
+              </span>
+              <strong id="auth-connected-email" style={{ fontSize: '0.94rem', wordBreak: 'break-all' }}>
+                {user.email || user.displayName || user.uid}
+              </strong>
+              <span
+                id="auth-sync-status"
+                style={{ fontSize: '0.8rem', fontWeight: 600, color: statusColor, marginTop: 4 }}
+              >
+                {statusLabel}
+              </span>
             </div>
 
-            {!user.emailVerified ? (
-              <div className="auth-alert auth-alert-warn">
-                <ShieldAlert size={16} />
-                <div>
-                  <strong>E-mail non vérifié.</strong>
-                  <p>
-                    La synchronisation cloud nécessite une adresse e-mail vérifiée.
-                  </p>
+            {(cloud.syncError || error) && (
+              <p className="auth-error-msg" id="auth-sync-error-msg">
+                {cloud.syncError || error}
+              </p>
+            )}
+
+            {!user.emailVerified && (
+              <div
+                id="auth-unverified-box"
+                className="auth-alert auth-alert-warn"
+                style={{ flexDirection: 'column', gap: 8 }}
+              >
+                <div style={{ fontWeight: 700, color: '#b45309' }}>
+                  Adresse e-mail non vérifiée
+                </div>
+                <div id="auth-unverified-msg" style={{ fontSize: '0.8rem', color: '#78350f' }}>
+                  {unverifiedMsg}
+                </div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   <button
                     type="button"
-                    className="auth-link-btn"
+                    id="btn-resend-verif"
+                    className="auth-secondary-btn"
+                    style={{ width: 'auto', padding: '6px 12px', fontSize: '0.78rem' }}
                     disabled={busy}
                     onClick={handleResendVerification}
                   >
-                    Renvoyer l’e-mail de vérification
+                    Renvoyer l&apos;e-mail de vérification
+                  </button>
+                  <button
+                    type="button"
+                    id="btn-check-verif"
+                    className="auth-primary-btn"
+                    style={{ width: 'auto', padding: '6px 12px', fontSize: '0.78rem' }}
+                    disabled={busy}
+                    onClick={handleCheckVerification}
+                  >
+                    J&apos;ai vérifié
                   </button>
                 </div>
               </div>
-            ) : (
-              <div className="auth-alert auth-alert-ok">
-                <CheckCircle2 size={16} />
-                <div>
-                  <strong>Synchronisation cloud active</strong>
-                  <p>
-                    Carnet de prises et tracés GPS synchronisés sur{' '}
-                    <code>quentin-apps-hub</code>.
-                  </p>
-                </div>
-              </div>
             )}
-
-            {syncMessage && <p className="auth-status-msg">{syncMessage}</p>}
-            {(syncError || error) && (
-              <p className="auth-error-msg">{syncError || error}</p>
-            )}
-            {info && <p className="auth-info-msg">{info}</p>}
 
             <div className="auth-actions">
-              {user.emailVerified && (
-                <button
-                  type="button"
-                  className="auth-primary-btn"
-                  disabled={syncing || busy}
-                  onClick={onSyncNow}
-                >
-                  <RefreshCw size={15} className={syncing ? 'spin' : ''} />
-                  {syncing ? 'Synchronisation...' : 'Synchroniser maintenant'}
-                </button>
-              )}
+              <button
+                type="button"
+                id="btn-force-sync"
+                className="auth-primary-btn"
+                disabled={cloud.syncStatus === 'syncing' || busy}
+                onClick={handleSyncNow}
+              >
+                <RefreshCw
+                  size={15}
+                  className={cloud.syncStatus === 'syncing' ? 'spin' : ''}
+                />
+                <span>Synchroniser maintenant</span>
+              </button>
               <button
                 type="button"
                 className="auth-secondary-btn"
+                style={{ color: '#dc2626', borderColor: 'rgba(220, 38, 38, 0.25)' }}
                 disabled={busy}
                 onClick={handleSignOut}
               >
                 <LogOut size={15} />
-                Se déconnecter
+                <span>Se déconnecter</span>
               </button>
             </div>
           </div>
         ) : (
-          <div className="auth-login-body">
+          <div className="auth-login-body" id="auth-logged-out-panel">
             <p className="auth-intro">
-              Connecte-toi pour sauvegarder et synchroniser ton carnet de prises et tes
-              tracés GPS entre tes appareils. Les cartes et réglementations restent
+              Connectez-vous pour synchroniser votre carnet de prises et vos tracés
+              GPS entre tous vos appareils. Les cartes et réglementations restent
               disponibles hors-ligne.
             </p>
 
-            <button
-              type="button"
-              className="auth-google-btn"
-              disabled={busy}
-              onClick={handleGoogle}
-            >
-              <Cloud size={16} />
-              Continuer avec Google
-            </button>
-
-            <div className="auth-divider">
-              <span>ou par e-mail</span>
-            </div>
-
-            <form className="auth-form" onSubmit={handleEmailSubmit}>
+            <form className="auth-form" onSubmit={handleFormSubmit}>
               <label className="auth-field">
-                <span>Adresse e-mail</span>
+                <span>Email</span>
                 <input
+                  id="auth-email"
                   type="email"
-                  required
                   autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="prenom.nom@exemple.fr"
+                  placeholder="prenom@exemple.fr"
                 />
               </label>
 
               <label className="auth-field">
-                <span>Mot de passe</span>
+                <span>Mot de passe (6 car. min)</span>
                 <input
+                  id="auth-password"
                   type="password"
-                  required
                   minLength={6}
-                  autoComplete={
-                    mode === 'login' ? 'current-password' : 'new-password'
-                  }
+                  autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                 />
               </label>
 
-              {error && <p className="auth-error-msg">{error}</p>}
-              {info && <p className="auth-info-msg">{info}</p>}
+              {error && (
+                <p className="auth-error-msg" id="auth-error-msg">
+                  {error}
+                </p>
+              )}
 
-              <button type="submit" className="auth-primary-btn" disabled={busy}>
-                <Mail size={15} />
-                {busy
-                  ? 'Connexion...'
-                  : mode === 'login'
-                    ? 'Se connecter'
-                    : 'Créer un compte'}
-              </button>
+              <div className="auth-actions">
+                <button
+                  type="submit"
+                  className="auth-primary-btn"
+                  disabled={busy}
+                >
+                  Se connecter
+                </button>
+                <button
+                  type="button"
+                  className="auth-secondary-btn"
+                  disabled={busy}
+                  onClick={() => handleEmailAuth(true)}
+                >
+                  Créer un compte
+                </button>
+                <button
+                  type="button"
+                  className="auth-google-btn"
+                  disabled={busy}
+                  onClick={handleGoogle}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      fill="#4285F4"
+                      d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17Z"
+                    />
+                    <path
+                      fill="#34A853"
+                      d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.96H1.29v3.14C3.26 21.3 7.31 24 12 24Z"
+                    />
+                    <path
+                      fill="#FBBC05"
+                      d="M5.28 14.24c-.24-.72-.38-1.49-.38-2.24s.14-1.52.38-2.24V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.99-3.14Z"
+                    />
+                    <path
+                      fill="#EA4335"
+                      d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.99 3.14c.95-2.85 3.6-4.96 6.72-4.96Z"
+                    />
+                  </svg>
+                  <span>Continuer avec Google</span>
+                </button>
+              </div>
             </form>
-
-            <button
-              type="button"
-              className="auth-switch-mode"
-              onClick={() => {
-                setMode((m) => (m === 'login' ? 'signup' : 'login'));
-                setError(null);
-                setInfo(null);
-              }}
-            >
-              {mode === 'login'
-                ? 'Pas encore de compte ? Créer un compte'
-                : 'Déjà un compte ? Se connecter'}
-            </button>
           </div>
         )}
       </div>

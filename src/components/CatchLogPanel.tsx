@@ -15,6 +15,7 @@ import {
   listCatches,
   saveCatch,
 } from '../services/catchStore';
+import { subscribeLocalDataChange } from '../services/cloudSync';
 
 interface CatchLogPanelProps {
   species: Species[];
@@ -42,6 +43,10 @@ export function CatchLogPanel({ species, defaultEnvironment }: CatchLogPanelProp
 
   useEffect(() => {
     listCatches().then(setCatches).catch(() => {});
+    const unsub = subscribeLocalDataChange(() => {
+      listCatches().then(setCatches).catch(() => {});
+    });
+    return unsub;
   }, []);
 
   const envSpecies = useMemo(

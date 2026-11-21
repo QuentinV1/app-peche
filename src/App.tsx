@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { onAuthStateChanged, type User } from 'firebase/auth';
-import { BookOpen, Camera, Droplets, Fish, Info, Map as MapIcon, Route, User as UserIcon, Waves } from 'lucide-react';
+import type { User } from 'firebase/auth';
+import { BookOpen, Camera, Cloud, Droplets, Fish, Info, Map as MapIcon, Route, User as UserIcon, Waves } from 'lucide-react';
 import type {
   DataManifest,
   FishingSession,
@@ -9,11 +9,17 @@ import type {
   Species,
 } from '../schema/types';
 import { loadCoreData, type FacadeCode } from './services/dataStore';
-import { auth, ensureUserJournal, formatAuthError } from './services/firebase';
+import { observerAuth } from './services/firebase';
 import {
-  pushSessionToCloud,
-  removeSessionFromCloud,
-  syncAllWithCloud,
+  activerSyncCloud,
+  cloudState,
+  loadLocalSettings,
+  reinitialiserEtatCloud,
+  saveLocalSettings,
+  subscribeCloudState,
+  subscribeLocalDataChange,
+  subscribeSettingsChange,
+  type CloudState,
 } from './services/cloudSync';
 import {
   computeTrackDistanceKm,
@@ -39,9 +45,10 @@ export interface FocusedSpeciesRule {
 }
 
 export function App() {
+  const initialSettings = loadLocalSettings();
   const [tab, setTab] = useState<TabKey>('map');
-  const [environment, setEnvironment] = useState<FishingEnvironment>('sea');
-  const [selectedFacade, setSelectedFacade] = useState<FacadeCode>('NAMO');
+  const [environment, setEnvironmentState] = useState<FishingEnvironment>(initialSettings.environment);
+  const [selectedFacade, setSelectedFacadeState] = useState<FacadeCode>(initialSettings.selectedFacade);
   const [manifest, setManifest] = useState<DataManifest | null>(null);
   const [species, setSpecies] = useState<Species[]>([]);
   const [regulations, setRegulations] = useState<RegulationRule[]>([]);
@@ -56,27 +63,27 @@ export function App() {
   const [displayedSession, setDisplayedSession] = useState<FishingSession | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
-  const [syncing, setSyncing] = useState(false);
-  const [syncMessage, setSyncMessage] = useState<string | null>(null);
-  const [syncError, setSyncError] = useState<string | null>(null);
+  const [cloud, setCloud] = useState<CloudState>({ ...cloudState });
   const watchIdRef = useRef<number | null>(null);
+  const currentFacadeRef = useRef<FacadeCode>(initialSettings.selectedFacade);
+  const currentEnvRef = useRef<FishingEnvironment>(initialSettings.environment);
 
-  const runCloudSync = useCallback(async (currentUser: User) => {
-    if (!currentUser.emailVerified) return;
-    setSyncing(true);
-    setSyncError(null);
-    try {
-      await ensureUserJournal(currentUser);
-      const res = await syncAllWithCloud(currentUser.uid);
-      setSavedSessions(await listSessions());
-      setSyncMessage(
-        `Synchronisé (${res.catchesSynced} prise${res.catchesSynced > 1 ? 's' : ''}, ${res.sessionsSynced} tracé${res.sessionsSynced > 1 ? 's' : ''}).`,
-      );
-    } catch (err) {
-      setSyncError(formatAuthError(err));
-    } finally {
-      setSyncing(false);
-    }
+  const setEnvironment = useCallback((nextEnv: FishingEnvironment) => {
+    currentEnvRef.current = nextEnv;
+    setEnvironmentState(nextEnv);
+    saveLocalSettings({
+      environment: nextEnv,
+      selectedFacade: currentFacadeRef.current,
+    });
+  }, []);
+
+  const setSelectedFacade = useCallback((nextFacade: FacadeCode) => {
+    currentFacadeRef.current = nextFacade;
+    setSelectedFacadeState(nextFacade);
+    saveLocalSettings({
+      environment: currentEnvRef.current,
+      selectedFacade: nextFacade,
+    });
   }, []);
 
   const syncData = useCallback(async (force = false) => {
@@ -103,20 +110,35 @@ export function App() {
     const onOffline = () => setIsOnline(false);
     window.addEventListener('online', onOnline);
     window.addEventListener('offline', onOffline);
-    const unsubAuth = onAuthStateChanged(auth, (nextUser) => {
+
+    const unsubCloud = subscribeCloudState(setCloud);
+    const unsubData = subscribeLocalDataChange(() => {
+      listSessions().then(setSavedSessions).catch(() => {});
+    });
+    const unsubSettings = subscribeSettingsChange((nextSettings) => {
+      currentEnvRef.current = nextSettings.environment;
+      currentFacadeRef.current = nextSettings.selectedFacade;
+      setEnvironmentState(nextSettings.environment);
+      setSelectedFacadeState(nextSettings.selectedFacade);
+    });
+    const unsubAuth = observerAuth((nextUser) => {
       setUser(nextUser);
-      setSyncMessage(null);
-      setSyncError(null);
-      if (nextUser?.emailVerified) {
-        runCloudSync(nextUser);
+      if (nextUser) {
+        activerSyncCloud().catch(() => {});
+      } else {
+        reinitialiserEtatCloud();
       }
     });
+
     return () => {
       window.removeEventListener('online', onOnline);
       window.removeEventListener('offline', onOffline);
+      unsubCloud();
+      unsubData();
+      unsubSettings();
       unsubAuth();
     };
-  }, [syncData, runCloudSync]);
+  }, [syncData]);
 
   useEffect(() => {
     if (activeSession?.status !== 'active' || !navigator.geolocation) {
@@ -204,7 +226,6 @@ export function App() {
       endedAt: new Date().toISOString(),
     };
     await saveSession(finished);
-    pushSessionToCloud(finished).catch(() => {});
     setActiveSession(null);
     setDisplayedSession(finished);
     setSavedSessions(await listSessions());
@@ -215,14 +236,12 @@ export function App() {
     if (!existing) return;
     const updated: FishingSession = { ...existing, name, date };
     await saveSession(updated);
-    pushSessionToCloud(updated).catch(() => {});
     setSavedSessions(await listSessions());
     if (displayedSession?.id === id) setDisplayedSession(updated);
   };
 
   const handleDeleteSession = async (id: string) => {
     await deleteSession(id);
-    removeSessionFromCloud(id).catch(() => {});
     if (displayedSession?.id === id) setDisplayedSession(null);
     setSavedSessions(await listSessions());
   };
@@ -260,14 +279,15 @@ export function App() {
           </span>
           <button
             type="button"
+            id="btn-auth-header"
             className={`auth-header-btn ${user ? 'auth-header-btn-signed' : ''}`}
             onClick={() => setAuthOpen(true)}
-            title={user ? `Connecté : ${user.email ?? 'Compte'}` : 'Se connecter'}
+            title={user ? `Connecté : ${user.email || user.uid}` : 'Se connecter au Cloud'}
           >
-            <UserIcon size={14} aria-hidden="true" />
+            {user ? <UserIcon size={14} aria-hidden="true" /> : <Cloud size={14} aria-hidden="true" />}
             <span>
               {user
-                ? (user.displayName?.split(' ')[0] ?? user.email?.split('@')[0] ?? 'Compte')
+                ? (user.email || user.displayName || 'Cloud').split('@')[0]
                 : 'Connexion'}
             </span>
           </button>
@@ -402,13 +422,9 @@ export function App() {
       <AuthModal
         open={authOpen}
         user={user}
-        syncing={syncing}
-        syncMessage={syncMessage}
-        syncError={syncError}
+        cloud={cloud}
         onClose={() => setAuthOpen(false)}
-        onSyncNow={async () => {
-          if (user) await runCloudSync(user);
-        }}
+        onUserUpdated={setUser}
       />
     </div>
   );

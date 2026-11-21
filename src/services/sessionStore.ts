@@ -1,6 +1,7 @@
 import type { FeatureCollection, Geometry } from 'geojson';
 import type { FishingSession, SessionPoint } from '../../schema/types';
 import { getDb, SESSIONS_STORE } from './dataStore';
+import { planifierPushCloud } from './cloudSync';
 
 export function haversineKm(a: SessionPoint, b: SessionPoint): number {
   const toRad = (deg: number) => (deg * Math.PI) / 180;
@@ -56,12 +57,16 @@ export async function listSessions(): Promise<FishingSession[]> {
   });
 }
 
-export async function saveSession(session: FishingSession): Promise<void> {
+export async function saveSession(session: FishingSession, skipCloud = false): Promise<void> {
   const db = await getDb();
   await db.put(SESSIONS_STORE, session);
+  if (!skipCloud && session.status !== 'active') {
+    planifierPushCloud(false);
+  }
 }
 
-export async function deleteSession(id: string): Promise<void> {
+export async function deleteSession(id: string, skipCloud = false): Promise<void> {
   const db = await getDb();
   await db.delete(SESSIONS_STORE, id);
+  planifierPushCloud(skipCloud);
 }

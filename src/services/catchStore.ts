@@ -1,6 +1,6 @@
 import type { CatchEntry } from '../../schema/types';
 import { CATCHES_STORE, getDb } from './dataStore';
-import { pushCatchToCloud, removeCatchFromCloud } from './cloudSync';
+import { planifierPushCloud } from './cloudSync';
 
 export async function listCatches(): Promise<CatchEntry[]> {
   const db = await getDb();
@@ -8,19 +8,19 @@ export async function listCatches(): Promise<CatchEntry[]> {
   return all.sort((a, b) => b.date.localeCompare(a.date));
 }
 
-export async function saveCatch(entry: CatchEntry): Promise<void> {
+export async function saveCatch(entry: CatchEntry, skipCloud = false): Promise<void> {
   const db = await getDb();
   await db.put(CATCHES_STORE, entry);
-  pushCatchToCloud(entry).catch(() => {});
+  planifierPushCloud(skipCloud);
 }
 
-export async function deleteCatch(id: string): Promise<void> {
+export async function deleteCatch(id: string, skipCloud = false): Promise<void> {
   const db = await getDb();
   await db.delete(CATCHES_STORE, id);
-  removeCatchFromCloud(id).catch(() => {});
+  planifierPushCloud(skipCloud);
 }
 
-export async function importCatches(entries: unknown): Promise<number> {
+export async function importCatches(entries: unknown, skipCloud = false): Promise<number> {
   if (!Array.isArray(entries)) {
     throw new Error('Format JSON invalide : un tableau de prises est attendu.');
   }
@@ -50,6 +50,9 @@ export async function importCatches(entries: unknown): Promise<number> {
     count += 1;
   }
   await tx.done;
+  if (count > 0) {
+    planifierPushCloud(skipCloud);
+  }
   return count;
 }
 

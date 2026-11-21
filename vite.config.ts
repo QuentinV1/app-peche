@@ -54,7 +54,7 @@ export default defineConfig({
             urlPattern: /\/data\/(facades|admin)\/.*\.geojson$/,
             handler: 'StaleWhileRevalidate',
             options: {
-              cacheName: 'geo-geojson-cache',
+              cacheName: 'geo-geojson-cache-v2',
               expiration: {
                 maxEntries: 15,
                 maxAgeSeconds: 60 * 60 * 24 * 30,

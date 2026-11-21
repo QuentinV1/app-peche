@@ -4,23 +4,23 @@ import {
   GoogleAuthProvider,
   createUserWithEmailAndPassword,
   getAuth,
+  onAuthStateChanged,
   sendEmailVerification,
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
+  type Auth,
   type User,
 } from 'firebase/auth';
 import {
-  doc,
-  getDoc,
+  getFirestore,
   initializeFirestore,
   persistentLocalCache,
   persistentMultipleTabManager,
-  serverTimestamp,
-  setDoc,
+  type Firestore,
 } from 'firebase/firestore';
 
-const QUENTIN_HUB_CONFIG = {
+export const FIREBASE_CONFIG = {
   apiKey: 'AIzaSyCuYM0tMpd1f1jDYz27OhCaPpcAWhI3i48',
   authDomain: 'quentin-apps-hub.firebaseapp.com',
   projectId: 'quentin-apps-hub',
@@ -30,101 +30,159 @@ const QUENTIN_HUB_CONFIG = {
 };
 
 let appInstance: FirebaseApp | null = null;
+let authInstance: Auth | null = null;
+let dbInstance: Firestore | null = null;
+let currentUser: User | null = null;
+let initTried = false;
 
-export function getFirebaseApp(): FirebaseApp {
-  if (!appInstance) {
-    const existing = getApps();
-    appInstance = existing.length > 0 ? existing[0] : initializeApp(QUENTIN_HUB_CONFIG);
-    const appCheckSiteKey = import.meta.env.VITE_FIREBASE_APPCHECK_SITE_KEY as string | undefined;
-    if (appCheckSiteKey && typeof window !== 'undefined') {
-      initializeAppCheck(appInstance, {
-        provider: new ReCaptchaV3Provider(appCheckSiteKey),
-        isTokenAutoRefreshEnabled: true,
-      });
-    }
-  }
-  return appInstance;
+export function isFirebaseSupportedEnv(): boolean {
+  if (typeof window === 'undefined') return false;
+  if (window.location.protocol === 'file:') return false;
+  return true;
 }
 
-export const app = getFirebaseApp();
-export const auth = getAuth(app);
-auth.languageCode = 'fr';
+export function initFirebase(): { app: FirebaseApp; auth: Auth; db: Firestore } | null {
+  if (appInstance && authInstance && dbInstance) {
+    return { app: appInstance, auth: authInstance, db: dbInstance };
+  }
+  if (initTried) return null;
+  initTried = true;
 
-export const db = initializeFirestore(app, {
-  localCache: persistentLocalCache({
-    tabManager: persistentMultipleTabManager(),
-  }),
-});
+  if (!isFirebaseSupportedEnv()) {
+    return null;
+  }
+
+  try {
+    const existing = getApps();
+    appInstance = existing.length > 0 ? existing[0] : initializeApp(FIREBASE_CONFIG);
+
+    const appCheckSiteKey = import.meta.env.VITE_FIREBASE_APPCHECK_SITE_KEY as string | undefined;
+    if (appCheckSiteKey) {
+      try {
+        initializeAppCheck(appInstance, {
+          provider: new ReCaptchaV3Provider(appCheckSiteKey),
+          isTokenAutoRefreshEnabled: true,
+        });
+      } catch {
+        // Ignorer en local si AppCheck échoue
+      }
+    }
+
+    authInstance = getAuth(appInstance);
+    authInstance.languageCode = 'fr';
+
+    try {
+      dbInstance = initializeFirestore(appInstance, {
+        localCache: persistentLocalCache({
+          tabManager: persistentMultipleTabManager(),
+        }),
+        ignoreUndefinedProperties: true,
+      });
+    } catch {
+      dbInstance = getFirestore(appInstance);
+    }
+
+    return { app: appInstance, auth: authInstance, db: dbInstance };
+  } catch (err) {
+    console.warn('Firebase SDK indisponible (mode hors-ligne local):', err);
+    appInstance = null;
+    authInstance = null;
+    dbInstance = null;
+    return null;
+  }
+}
+
+export function getFirebaseApp(): FirebaseApp {
+  const inst = initFirebase();
+  if (!inst) {
+    const existing = getApps();
+    return existing.length > 0 ? existing[0] : initializeApp(FIREBASE_CONFIG);
+  }
+  return inst.app;
+}
+
+export function getFirebaseAuth(): Auth | null {
+  return initFirebase()?.auth ?? null;
+}
+
+export function getFirebaseDb(): Firestore | null {
+  return initFirebase()?.db ?? null;
+}
+
+export function getFirebaseUser(): User | null {
+  return currentUser ?? authInstance?.currentUser ?? null;
+}
+
+export function estConnecteFirebase(): boolean {
+  return Boolean(getFirebaseUser());
+}
+
+export function observerAuth(onUserChanged: (user: User | null) => void): () => void {
+  const inst = initFirebase();
+  if (!inst) {
+    currentUser = null;
+    onUserChanged(null);
+    return () => {};
+  }
+  return onAuthStateChanged(inst.auth, (user) => {
+    currentUser = user ?? null;
+    onUserChanged(currentUser);
+  });
+}
 
 const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });
 
 export async function signInWithGoogle(): Promise<User> {
-  const cred = await signInWithPopup(auth, googleProvider);
+  const inst = initFirebase();
+  if (!inst) throw new Error('Firebase indisponible hors-ligne.');
+  const cred = await signInWithPopup(inst.auth, googleProvider);
+  currentUser = cred.user;
   return cred.user;
 }
 
 export async function signInWithEmail(email: string, password: string): Promise<User> {
-  const cred = await signInWithEmailAndPassword(auth, email.trim(), password);
+  const inst = initFirebase();
+  if (!inst) throw new Error('Firebase indisponible hors-ligne.');
+  const cred = await signInWithEmailAndPassword(inst.auth, email.trim(), password);
+  currentUser = cred.user;
   return cred.user;
 }
 
 export async function signUpWithEmail(email: string, password: string): Promise<User> {
-  const cred = await createUserWithEmailAndPassword(auth, email.trim(), password);
-  await sendEmailVerification(cred.user);
+  const inst = initFirebase();
+  if (!inst) throw new Error('Firebase indisponible hors-ligne.');
+  const cred = await createUserWithEmailAndPassword(inst.auth, email.trim(), password);
+  currentUser = cred.user;
+  if (cred.user) {
+    sendEmailVerification(cred.user).catch(() => {});
+  }
   return cred.user;
 }
 
-export async function resendVerificationEmail(user: User): Promise<void> {
+export async function resendVerificationEmail(): Promise<boolean> {
+  const inst = initFirebase();
+  const user = inst?.auth.currentUser;
+  if (!inst || !user) throw new Error('Aucun utilisateur connecté.');
+  if (user.emailVerified) return false;
   await sendEmailVerification(user);
+  return true;
+}
+
+export async function reloadFirebaseUser(): Promise<User | null> {
+  const inst = initFirebase();
+  const user = inst?.auth.currentUser;
+  if (!inst || !user) return null;
+  await user.reload();
+  currentUser = inst.auth.currentUser;
+  return currentUser;
 }
 
 export async function signOutUser(): Promise<void> {
-  await signOut(auth);
-}
-
-/**
- * Initialise le profil utilisateur (`users/{uid}`) et le carnet personnel
- * (`peche_journals/{uid}`) dans Firestore selon les règles de `quentin-apps-hub`.
- */
-export async function ensureUserJournal(user: User): Promise<void> {
-  if (!user.emailVerified) return;
-
-  const userRef = doc(db, 'users', user.uid);
-  const userSnap = await getDoc(userRef);
-  if (!userSnap.exists()) {
-    await setDoc(userRef, {
-      uid: user.uid,
-      email: user.email ?? '',
-      displayName: user.displayName ?? '',
-      photoURL: user.photoURL ?? '',
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    });
-  } else {
-    await setDoc(
-      userRef,
-      {
-        email: user.email ?? '',
-        displayName: user.displayName ?? '',
-        photoURL: user.photoURL ?? '',
-        updatedAt: serverTimestamp(),
-      },
-      { merge: true },
-    );
-  }
-
-  const journalRef = doc(db, 'peche_journals', user.uid);
-  const journalSnap = await getDoc(journalRef);
-  if (!journalSnap.exists()) {
-    await setDoc(journalRef, {
-      ownerUid: user.uid,
-      memberUids: [user.uid],
-      name: 'Mon carnet Pêche France',
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    });
-  }
+  const inst = initFirebase();
+  if (!inst) return;
+  await signOut(inst.auth);
+  currentUser = null;
 }
 
 export function formatAuthError(err: unknown): string {
@@ -132,6 +190,9 @@ export function formatAuthError(err: unknown): string {
     typeof err === 'object' && err !== null && 'code' in err
       ? String((err as { code?: unknown }).code)
       : '';
+  if (code === 'permission-denied' || code === 'firestore/permission-denied') {
+    return 'Accès Firestore refusé (vérifiez que votre e-mail est bien vérifié et autorisé).';
+  }
   switch (code) {
     case 'auth/invalid-email':
       return 'Adresse e-mail invalide.';
@@ -144,15 +205,13 @@ export function formatAuthError(err: unknown): string {
     case 'auth/weak-password':
       return 'Le mot de passe doit contenir au moins 6 caractères.';
     case 'auth/too-many-requests':
-      return 'Trop de tentatives. Réessaie dans quelques minutes.';
+      return 'Trop de tentatives. Réessayez dans quelques minutes.';
     case 'auth/popup-closed-by-user':
       return 'Fenêtre de connexion fermée avant la fin.';
     case 'auth/popup-blocked':
       return 'La fenêtre Google a été bloquée par le navigateur.';
     case 'auth/network-request-failed':
       return 'Impossible de joindre le serveur (mode hors-ligne ?).';
-    case 'permission-denied':
-      return 'Accès refusé : vérifie que ton e-mail est validé et autorisé sur quentin-apps-hub.';
     default:
       return err instanceof Error ? err.message : 'Erreur de connexion inconnue.';
   }
