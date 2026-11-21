@@ -1,4 +1,5 @@
-import { ExternalLink, RefreshCw, ShieldAlert, Wifi, WifiOff } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { ExternalLink, LayoutGrid, RefreshCw, ShieldAlert, Wifi, WifiOff, X } from 'lucide-react';
 import type { DataManifest, SanitaryAlert } from '../../schema/types';
 import {
   resolveManifestSourceReference,
@@ -22,6 +23,17 @@ export function InfoPanel({
   refreshing,
   onRefresh,
 }: InfoPanelProps) {
+  const [showOtherApps, setShowOtherApps] = useState(false);
+
+  useEffect(() => {
+    if (!showOtherApps) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowOtherApps(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [showOtherApps]);
+
   return (
     <div className="panel-scroll">
       <div className="info-card">
@@ -136,6 +148,89 @@ export function InfoPanel({
           signalétique en vigueur avant toute capture.
         </p>
       </div>
+
+      <div className="info-card">
+        <h2>Mes autres applications</h2>
+        <p className="rule-detail">
+          Accéder rapidement aux autres applications web (GitHub Pages).
+        </p>
+        <button
+          type="button"
+          className="refresh-btn"
+          onClick={() => setShowOtherApps(true)}
+        >
+          <LayoutGrid size={16} />
+          Mes autres applications
+        </button>
+      </div>
+
+      {showOtherApps && (
+        <div
+          className="auth-modal-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="other-apps-title"
+          onClick={() => setShowOtherApps(false)}
+        >
+          <div className="auth-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="auth-modal-head">
+              <h2 id="other-apps-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <LayoutGrid size={18} color="var(--ocean)" />
+                <span>Mes autres applications</span>
+              </h2>
+              <button
+                type="button"
+                className="auth-close-btn"
+                onClick={() => setShowOtherApps(false)}
+                aria-label="Fermer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <p className="rule-detail" style={{ marginBottom: 12 }}>
+              Retrouvez toutes les autres applications hébergées sur GitHub Pages.
+            </p>
+            <div style={{ display: 'grid', gap: 8, maxHeight: '60vh', overflowY: 'auto' }}>
+              {[
+                { name: "L'Affinoir", desc: "Charcuterie, salaisons & cave d'affinage", url: 'https://quentinv1.github.io/app-charcuterie/' },
+                { name: 'App Voyage', desc: "Planificateur d'itinéraire, carte & carnet de voyage", url: 'https://quentinv1.github.io/app-voyage/' },
+                { name: 'Budget Prévisionnel', desc: 'Budget du foyer, provisions & projections', url: 'https://quentinv1.github.io/budget-previsionnel/' },
+                { name: 'Cave à vin', desc: 'Stock de bouteilles, apogée & dégustations', url: 'https://quentinv1.github.io/cave-a-vin/' },
+                { name: 'Checklist Valise', desc: 'Bagages, calculateur de poids & règles IATA', url: 'https://quentinv1.github.io/checklist-valise/' },
+                { name: 'Livre de recettes', desc: 'Recettes, planning semaine & liste de courses', url: 'https://quentinv1.github.io/livre-recettes/' },
+                { name: 'Suivi Chasse', desc: 'Carnet de sorties, carte & album trophées', url: 'https://quentinv1.github.io/suivi-chasse/' },
+                { name: 'Travaux Maison', desc: 'Plan 2D/3D, courses, tâches & entretien', url: 'https://quentinv1.github.io/travaux-maison/' },
+              ].map((app) => (
+                <a
+                  key={app.url}
+                  href={app.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 12,
+                    padding: '10px 12px',
+                    border: '1px solid var(--border, #e2e8f0)',
+                    borderRadius: 10,
+                    textDecoration: 'none',
+                    color: 'inherit',
+                  }}
+                >
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{app.name}</div>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--muted, #64748b)' }}>{app.desc}</div>
+                  </div>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '0.78rem', fontWeight: 600, color: 'var(--ocean, #0284c7)', whiteSpace: 'nowrap' }}>
+                    Ouvrir <ExternalLink size={14} />
+                  </span>
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

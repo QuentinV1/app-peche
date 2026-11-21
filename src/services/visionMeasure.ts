@@ -71,7 +71,7 @@ export async function identifySpeciesFromPhoto(
       try {
         const ai = getAI(getFirebaseApp(), { backend: new GoogleAIBackend() });
         const model = getGenerativeModel(ai, {
-          model: 'gemini-2.5-flash',
+          model: 'gemini-3.8-flash',
           generationConfig: { responseMimeType: 'application/json' },
         });
         const imagePart: Part = {

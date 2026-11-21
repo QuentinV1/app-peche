@@ -1,5 +1,5 @@
 import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
-import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check';
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
 import {
   GoogleAuthProvider,
   createUserWithEmailAndPassword,
@@ -56,11 +56,13 @@ export function initFirebase(): { app: FirebaseApp; auth: Auth; db: Firestore } 
     const existing = getApps();
     appInstance = existing.length > 0 ? existing[0] : initializeApp(FIREBASE_CONFIG);
 
-    const appCheckSiteKey = import.meta.env.VITE_FIREBASE_APPCHECK_SITE_KEY as string | undefined;
+    const appCheckSiteKey =
+      (import.meta.env.VITE_FIREBASE_APPCHECK_SITE_KEY as string | undefined) ||
+      '6LfRaysuAAAAACpC4hKbGG5Bjpr3Ifr1CyUSlmRe';
     if (appCheckSiteKey) {
       try {
         initializeAppCheck(appInstance, {
-          provider: new ReCaptchaV3Provider(appCheckSiteKey),
+          provider: new ReCaptchaEnterpriseProvider(appCheckSiteKey),
           isTokenAutoRefreshEnabled: true,
         });
       } catch {
