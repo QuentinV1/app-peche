@@ -37,9 +37,6 @@ export function VisionMeasurePanel({
 }: VisionMeasurePanelProps) {
   const [photoDataUrl, setPhotoDataUrl] = useState<string | null>(null);
   const [categoryHint, setCategoryHint] = useState<'all' | SpeciesCategory>('all');
-  const [geminiKey, setGeminiKey] = useState<string>(
-    () => localStorage.getItem('app_peche_gemini_key') ?? '',
-  );
   const [identifying, setIdentifying] = useState(false);
   const [candidates, setCandidates] = useState<RecognitionCandidate[]>([]);
   const [selectedSpeciesId, setSelectedSpeciesId] = useState<string>('');
@@ -105,15 +102,11 @@ export function VisionMeasurePanel({
     if (!photoDataUrl) return;
     setIdentifying(true);
     try {
-      if (geminiKey.trim()) {
-        localStorage.setItem('app_peche_gemini_key', geminiKey.trim());
-      }
       const res = await identifySpeciesFromPhoto(
         photoDataUrl,
         species,
         environment,
         categoryHint,
-        geminiKey,
       );
       setCandidates(res);
       if (res[0]) setSelectedSpeciesId(res[0].species.id);
@@ -216,17 +209,6 @@ export function VisionMeasurePanel({
                 </button>
               ))}
             </div>
-
-            <label className="form-field" style={{ marginBottom: 8 }}>
-              <span>Clé API Gemini optionnelle (sinon mode hors-ligne)</span>
-              <input
-                type="password"
-                maxLength={120}
-                value={geminiKey}
-                onChange={(e) => setGeminiKey(e.target.value)}
-                placeholder="AIza... (optionnel)"
-              />
-            </label>
 
             <button
               type="button"

@@ -1,4 +1,6 @@
+import { getAI, getGenerativeModel, GoogleAIBackend, type Part } from 'firebase/ai';
 import type { Species, SpeciesCategory } from '../../schema/types';
+import { getFirebaseApp } from './firebase';
 
 export interface Point2D {
   x: number;
@@ -56,60 +58,77 @@ export async function identifySpeciesFromPhoto(
   });
 
   const key = (apiKey || (import.meta.env.VITE_GEMINI_API_KEY as string | undefined) || '').trim();
-  if (key && navigator.onLine && dataUrl.startsWith('data:image/')) {
+  if (navigator.onLine && dataUrl.startsWith('data:image/')) {
     try {
       const base64 = dataUrl.split(',')[1];
       const mimeType = dataUrl.slice(5, dataUrl.indexOf(';')) || 'image/jpeg';
       const catalogText = candidates
         .map((s) => `${s.id}: ${s.commonName} (${s.scientificName})`)
         .join('\n');
+      const prompt = `Identifie l'espèce marine ou d'eau douce sur cette photo parmi la liste suivante et réponds uniquement en JSON {"speciesId":"...","reason":"..."} :\n${catalogText}`;
 
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(key)}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [
-              {
-                parts: [
-                  {
-                    text: `Identifie l'espèce marine ou d'eau douce sur cette photo parmi la liste suivante et réponds uniquement en JSON {"speciesId":"...","reason":"..."} :\n${catalogText}`,
-                  },
-                  { inline_data: { mime_type: mimeType, data: base64 } },
-                ],
-              },
-            ],
-            generationConfig: { responseMimeType: 'application/json' },
-          }),
-          signal: AbortSignal.timeout(12_000),
-        },
-      );
-      if (res.ok) {
-        const json = (await res.json()) as {
-          candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+      let rawText: string | undefined;
+      try {
+        const ai = getAI(getFirebaseApp(), { backend: new GoogleAIBackend() });
+        const model = getGenerativeModel(ai, {
+          model: 'gemini-2.5-flash',
+          generationConfig: { responseMimeType: 'application/json' },
+        });
+        const imagePart: Part = {
+          type: 'inlineData',
+          inlineData: { mimeType, data: base64 },
         };
-        const rawText = json.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (rawText) {
-          const parsed = JSON.parse(rawText) as { speciesId?: string; reason?: string };
-          const matched = candidates.find((s) => s.id === parsed.speciesId);
-          if (matched) {
-            return [
-              {
-                species: matched,
-                confidence: 'high',
-                reason: parsed.reason || 'Identifié par Gemini Vision',
-              },
-              ...candidates
-                .filter((s) => s.id !== matched.id)
-                .slice(0, 3)
-                .map((s) => ({
-                  species: s,
-                  confidence: 'medium' as const,
-                  reason: 'Autre espèce proche',
-                })),
-            ];
+        const result = await model.generateContent([prompt, imagePart]);
+        rawText = result.response.text();
+      } catch {
+        if (key) {
+          const res = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(key)}`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [
+                  {
+                    parts: [
+                      { text: prompt },
+                      { inline_data: { mime_type: mimeType, data: base64 } },
+                    ],
+                  },
+                ],
+                generationConfig: { responseMimeType: 'application/json' },
+              }),
+              signal: AbortSignal.timeout(12_000),
+            },
+          );
+          if (res.ok) {
+            const json = (await res.json()) as {
+              candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+            };
+            rawText = json.candidates?.[0]?.content?.parts?.[0]?.text;
           }
+        }
+      }
+
+      if (rawText) {
+        const parsed = JSON.parse(rawText) as { speciesId?: string; reason?: string };
+        const matched = candidates.find((s) => s.id === parsed.speciesId);
+        if (matched) {
+          return [
+            {
+              species: matched,
+              confidence: 'high',
+              reason: parsed.reason || 'Identifié par Gemini Vision',
+            },
+            ...candidates
+              .filter((s) => s.id !== matched.id)
+              .slice(0, 3)
+              .map((s) => ({
+                species: s,
+                confidence: 'medium' as const,
+                reason: 'Autre espèce proche',
+              })),
+          ];
         }
       }
     } catch {

@@ -1,5 +1,6 @@
 import type { CatchEntry } from '../../schema/types';
 import { CATCHES_STORE, getDb } from './dataStore';
+import { pushCatchToCloud, removeCatchFromCloud } from './cloudSync';
 
 export async function listCatches(): Promise<CatchEntry[]> {
   const db = await getDb();
@@ -10,11 +11,13 @@ export async function listCatches(): Promise<CatchEntry[]> {
 export async function saveCatch(entry: CatchEntry): Promise<void> {
   const db = await getDb();
   await db.put(CATCHES_STORE, entry);
+  pushCatchToCloud(entry).catch(() => {});
 }
 
 export async function deleteCatch(id: string): Promise<void> {
   const db = await getDb();
   await db.delete(CATCHES_STORE, id);
+  removeCatchFromCloud(id).catch(() => {});
 }
 
 export async function importCatches(entries: unknown): Promise<number> {

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { BookOpen, Camera, Droplets, Fish, Info, Map as MapIcon, Route, Waves } from 'lucide-react';
+import { onAuthStateChanged, type User } from 'firebase/auth';
+import { BookOpen, Camera, Droplets, Fish, Info, Map as MapIcon, Route, User as UserIcon, Waves } from 'lucide-react';
 import type {
   DataManifest,
   FishingSession,
@@ -8,12 +9,19 @@ import type {
   Species,
 } from '../schema/types';
 import { loadCoreData, type FacadeCode } from './services/dataStore';
+import { auth, ensureUserJournal, formatAuthError } from './services/firebase';
+import {
+  pushSessionToCloud,
+  removeSessionFromCloud,
+  syncAllWithCloud,
+} from './services/cloudSync';
 import {
   computeTrackDistanceKm,
   deleteSession,
   listSessions,
   saveSession,
 } from './services/sessionStore';
+import { AuthModal } from './components/AuthModal';
 import { FranceMap } from './components/FranceMap';
 import { TracksPanel } from './components/TracksPanel';
 import { SpeciesPanel } from './components/SpeciesPanel';
@@ -46,7 +54,30 @@ export function App() {
   const [activeSession, setActiveSession] = useState<FishingSession | null>(null);
   const [savedSessions, setSavedSessions] = useState<FishingSession[]>([]);
   const [displayedSession, setDisplayedSession] = useState<FishingSession | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [authOpen, setAuthOpen] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
+  const [syncError, setSyncError] = useState<string | null>(null);
   const watchIdRef = useRef<number | null>(null);
+
+  const runCloudSync = useCallback(async (currentUser: User) => {
+    if (!currentUser.emailVerified) return;
+    setSyncing(true);
+    setSyncError(null);
+    try {
+      await ensureUserJournal(currentUser);
+      const res = await syncAllWithCloud(currentUser.uid);
+      setSavedSessions(await listSessions());
+      setSyncMessage(
+        `Synchronisé (${res.catchesSynced} prise${res.catchesSynced > 1 ? 's' : ''}, ${res.sessionsSynced} tracé${res.sessionsSynced > 1 ? 's' : ''}).`,
+      );
+    } catch (err) {
+      setSyncError(formatAuthError(err));
+    } finally {
+      setSyncing(false);
+    }
+  }, []);
 
   const syncData = useCallback(async (force = false) => {
     setRefreshing(true);
@@ -72,11 +103,20 @@ export function App() {
     const onOffline = () => setIsOnline(false);
     window.addEventListener('online', onOnline);
     window.addEventListener('offline', onOffline);
+    const unsubAuth = onAuthStateChanged(auth, (nextUser) => {
+      setUser(nextUser);
+      setSyncMessage(null);
+      setSyncError(null);
+      if (nextUser?.emailVerified) {
+        runCloudSync(nextUser);
+      }
+    });
     return () => {
       window.removeEventListener('online', onOnline);
       window.removeEventListener('offline', onOffline);
+      unsubAuth();
     };
-  }, [syncData]);
+  }, [syncData, runCloudSync]);
 
   useEffect(() => {
     if (activeSession?.status !== 'active' || !navigator.geolocation) {
@@ -164,6 +204,7 @@ export function App() {
       endedAt: new Date().toISOString(),
     };
     await saveSession(finished);
+    pushSessionToCloud(finished).catch(() => {});
     setActiveSession(null);
     setDisplayedSession(finished);
     setSavedSessions(await listSessions());
@@ -174,12 +215,14 @@ export function App() {
     if (!existing) return;
     const updated: FishingSession = { ...existing, name, date };
     await saveSession(updated);
+    pushSessionToCloud(updated).catch(() => {});
     setSavedSessions(await listSessions());
     if (displayedSession?.id === id) setDisplayedSession(updated);
   };
 
   const handleDeleteSession = async (id: string) => {
     await deleteSession(id);
+    removeSessionFromCloud(id).catch(() => {});
     if (displayedSession?.id === id) setDisplayedSession(null);
     setSavedSessions(await listSessions());
   };
@@ -215,6 +258,19 @@ export function App() {
           <span className="version-tag">
             {manifest ? `MàJ ${manifest.version}` : 'Chargement...'}
           </span>
+          <button
+            type="button"
+            className={`auth-header-btn ${user ? 'auth-header-btn-signed' : ''}`}
+            onClick={() => setAuthOpen(true)}
+            title={user ? `Connecté : ${user.email ?? 'Compte'}` : 'Se connecter'}
+          >
+            <UserIcon size={14} aria-hidden="true" />
+            <span>
+              {user
+                ? (user.displayName?.split(' ')[0] ?? user.email?.split('@')[0] ?? 'Compte')
+                : 'Connexion'}
+            </span>
+          </button>
         </div>
       </header>
 
@@ -343,6 +399,17 @@ export function App() {
           <span>Données</span>
         </button>
       </nav>
+      <AuthModal
+        open={authOpen}
+        user={user}
+        syncing={syncing}
+        syncMessage={syncMessage}
+        syncError={syncError}
+        onClose={() => setAuthOpen(false)}
+        onSyncNow={async () => {
+          if (user) await runCloudSync(user);
+        }}
+      />
     </div>
   );
 }
