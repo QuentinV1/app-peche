@@ -1,6 +1,6 @@
 {
-  "version": "2026.11.19.1",
-  "generatedAt": "2026-11-19T14:47:24.139Z",
+  "version": "2026.11.21.1",
+  "generatedAt": "2026-11-21T13:47:23.289Z",
   "sources": [
     {
       "id": "cacem",
@@ -14,9 +14,9 @@
       "id": "cnsp",
       "name": "Réglementation des pêches cartographiée (CNSP)",
       "datasetId": "60c0ad5b8d17ba18c7b17bd0",
-      "url": "https://static.data.gouv.fr/resources/reglementation-des-peches-cartographiee/20261113-011823/reglementation-des-peches-cartographiee.csv",
-      "lastModified": "2026-11-13T01:18:47.789000+00:00",
-      "recordCount": 1190
+      "url": "https://static.data.gouv.fr/resources/reglementation-des-peches-cartographiee/20261120-011835/reglementation-des-peches-cartographiee.csv",
+      "lastModified": "2026-11-20T01:18:49.936000+00:00",
+      "recordCount": 1197
     }
   ],
   "files": {
@@ -29,10 +29,10 @@
     "species.json": "caa6f232d8026003",
     "regulations.json": "6b96e9fd0500227f",
     "alerts.json": "4fb3ce078226aa53",
-    "facades/zones-MED.geojson": "cc35e685398d69c1",
-    "facades/zones-MEMN.geojson": "966eae0d941e7df2",
-    "facades/zones-NAMO.geojson": "d47673e35018b2ef",
-    "facades/zones-OTHER.geojson": "7e6d92f30eb8619f",
-    "facades/zones-SA.geojson": "d9823900ba4e176a"
+    "facades/zones-MED.geojson": "802f4e7db77bf9d6",
+    "facades/zones-MEMN.geojson": "0f1454feabe17252",
+    "facades/zones-NAMO.geojson": "e45bc743b29885ba",
+    "facades/zones-OTHER.geojson": "f8789c71db5da79e",
+    "facades/zones-SA.geojson": "271bf775a587f02d"
   }
 }
