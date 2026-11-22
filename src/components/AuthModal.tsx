@@ -1,13 +1,16 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import type { User } from 'firebase/auth';
 import {
+  AlertCircle,
   Cloud,
   LogOut,
   RefreshCw,
+  Shield,
   X,
 } from 'lucide-react';
 import {
   formatAuthError,
+  initFirebase,
   reloadFirebaseUser,
   resendVerificationEmail,
   signInWithEmail,
@@ -21,6 +24,11 @@ import {
   reinitialiserEtatCloud,
   type CloudState,
 } from '../services/cloudSync';
+import {
+  resolveUserAccess,
+  type AccessStatus,
+} from '../services/accessControl';
+import { AccessControlPanel } from './AccessControlPanel';
 
 interface AuthModalProps {
   open: boolean;
@@ -44,6 +52,31 @@ export function AuthModal({
   const [unverifiedMsg, setUnverifiedMsg] = useState<string>(
     'Vérifiez votre boîte mail (ou utilisez « Continuer avec Google »).',
   );
+  const [accessStatus, setAccessStatus] = useState<AccessStatus | null>(null);
+  const [activeTab, setActiveTab] = useState<'account' | 'access'>('account');
+  const db = initFirebase()?.db ?? null;
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!open || !user || !user.emailVerified || !db || !user.email) {
+      setAccessStatus(null);
+      setActiveTab('account');
+      return;
+    }
+    resolveUserAccess(db, 'app-peche', user.email)
+      .then((status) => {
+        if (!cancelled) {
+          setAccessStatus(status);
+          if (!status.isAdmin) setActiveTab('account');
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setAccessStatus(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, user?.uid, user?.emailVerified, user?.email, db]);
 
   if (!open) return null;
 
@@ -194,89 +227,179 @@ export function AuthModal({
 
         {user ? (
           <div className="auth-account-body" id="auth-logged-in-panel">
-            <div className="auth-user-card" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
-              <span style={{ fontSize: '0.73rem', color: 'var(--muted)', textTransform: 'uppercase', fontWeight: 700 }}>
-                Connecté en tant que
-              </span>
-              <strong id="auth-connected-email" style={{ fontSize: '0.94rem', wordBreak: 'break-all' }}>
-                {user.email || user.displayName || user.uid}
-              </strong>
-              <span
-                id="auth-sync-status"
-                style={{ fontSize: '0.8rem', fontWeight: 600, color: statusColor, marginTop: 4 }}
-              >
-                {statusLabel}
-              </span>
-            </div>
-
-            {(cloud.syncError || error) && (
-              <p className="auth-error-msg" id="auth-sync-error-msg">
-                {cloud.syncError || error}
-              </p>
-            )}
-
-            {!user.emailVerified && (
+            {accessStatus?.isAdmin && (
               <div
-                id="auth-unverified-box"
-                className="auth-alert auth-alert-warn"
-                style={{ flexDirection: 'column', gap: 8 }}
+                role="tablist"
+                aria-label="Gestion du compte et des accès"
+                style={{
+                  display: 'flex',
+                  gap: 6,
+                  marginBottom: 12,
+                  padding: 4,
+                  borderRadius: 10,
+                  background: 'rgba(15, 23, 42, 0.25)',
+                  border: '1px solid rgba(148, 163, 184, 0.2)',
+                }}
               >
-                <div style={{ fontWeight: 700, color: '#b45309' }}>
-                  Adresse e-mail non vérifiée
-                </div>
-                <div id="auth-unverified-msg" style={{ fontSize: '0.8rem', color: '#78350f' }}>
-                  {unverifiedMsg}
-                </div>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  <button
-                    type="button"
-                    id="btn-resend-verif"
-                    className="auth-secondary-btn"
-                    style={{ width: 'auto', padding: '6px 12px', fontSize: '0.78rem' }}
-                    disabled={busy}
-                    onClick={handleResendVerification}
-                  >
-                    Renvoyer l&apos;e-mail de vérification
-                  </button>
-                  <button
-                    type="button"
-                    id="btn-check-verif"
-                    className="auth-primary-btn"
-                    style={{ width: 'auto', padding: '6px 12px', fontSize: '0.78rem' }}
-                    disabled={busy}
-                    onClick={handleCheckVerification}
-                  >
-                    J&apos;ai vérifié
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={activeTab === 'account'}
+                  onClick={() => setActiveTab('account')}
+                  style={{
+                    flex: 1,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6,
+                    padding: '7px 10px',
+                    borderRadius: 8,
+                    border: 'none',
+                    fontSize: '0.78rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    background: activeTab === 'account' ? 'var(--ocean)' : 'transparent',
+                    color: activeTab === 'account' ? '#ffffff' : 'var(--muted)',
+                  }}
+                >
+                  <Cloud size={14} />
+                  <span>Compte Cloud</span>
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={activeTab === 'access'}
+                  onClick={() => setActiveTab('access')}
+                  style={{
+                    flex: 1,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6,
+                    padding: '7px 10px',
+                    borderRadius: 8,
+                    border: 'none',
+                    fontSize: '0.78rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    background: activeTab === 'access' ? 'var(--ocean)' : 'transparent',
+                    color: activeTab === 'access' ? '#ffffff' : 'var(--muted)',
+                  }}
+                >
+                  <Shield size={14} />
+                  <span>Accès &amp; Rôles</span>
+                </button>
               </div>
             )}
 
-            <div className="auth-actions">
-              <button
-                type="button"
-                id="btn-force-sync"
-                className="auth-primary-btn"
-                disabled={cloud.syncStatus === 'syncing' || busy}
-                onClick={handleSyncNow}
-              >
-                <RefreshCw
-                  size={15}
-                  className={cloud.syncStatus === 'syncing' ? 'spin' : ''}
-                />
-                <span>Synchroniser maintenant</span>
-              </button>
-              <button
-                type="button"
-                className="auth-secondary-btn"
-                style={{ color: '#dc2626', borderColor: 'rgba(220, 38, 38, 0.25)' }}
-                disabled={busy}
-                onClick={handleSignOut}
-              >
-                <LogOut size={15} />
-                <span>Se déconnecter</span>
-              </button>
-            </div>
+            {accessStatus?.isAdmin && activeTab === 'access' ? (
+              <AccessControlPanel
+                db={db}
+                user={user}
+                appId="app-peche"
+                appName="App Pêche"
+                theme="dark"
+              />
+            ) : (
+              <>
+                <div className="auth-user-card" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
+                  <span style={{ fontSize: '0.73rem', color: 'var(--muted)', textTransform: 'uppercase', fontWeight: 700 }}>
+                    Connecté en tant que
+                  </span>
+                  <strong id="auth-connected-email" style={{ fontSize: '0.94rem', wordBreak: 'break-all' }}>
+                    {user.email || user.displayName || user.uid}
+                  </strong>
+                  <span
+                    id="auth-sync-status"
+                    style={{ fontSize: '0.8rem', fontWeight: 600, color: statusColor, marginTop: 4 }}
+                  >
+                    {statusLabel}
+                  </span>
+                </div>
+
+                {accessStatus && !accessStatus.hasAppAccess && (
+                  <div
+                    id="auth-access-denied-msg"
+                    className="auth-error-msg"
+                    style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}
+                  >
+                    <AlertCircle size={16} style={{ flexShrink: 0, marginTop: 2 }} />
+                    <span>
+                      Votre compte n&apos;est pas autorisé sur cette application. Contactez un administrateur.
+                    </span>
+                  </div>
+                )}
+
+                {(cloud.syncError || error) && (
+                  <p className="auth-error-msg" id="auth-sync-error-msg">
+                    {cloud.syncError || error}
+                  </p>
+                )}
+
+                {!user.emailVerified && (
+                  <div
+                    id="auth-unverified-box"
+                    className="auth-alert auth-alert-warn"
+                    style={{ flexDirection: 'column', gap: 8 }}
+                  >
+                    <div style={{ fontWeight: 700, color: '#b45309' }}>
+                      Adresse e-mail non vérifiée
+                    </div>
+                    <div id="auth-unverified-msg" style={{ fontSize: '0.8rem', color: '#78350f' }}>
+                      {unverifiedMsg}
+                    </div>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                      <button
+                        type="button"
+                        id="btn-resend-verif"
+                        className="auth-secondary-btn"
+                        style={{ width: 'auto', padding: '6px 12px', fontSize: '0.78rem' }}
+                        disabled={busy}
+                        onClick={handleResendVerification}
+                      >
+                        Renvoyer l&apos;e-mail de vérification
+                      </button>
+                      <button
+                        type="button"
+                        id="btn-check-verif"
+                        className="auth-primary-btn"
+                        style={{ width: 'auto', padding: '6px 12px', fontSize: '0.78rem' }}
+                        disabled={busy}
+                        onClick={handleCheckVerification}
+                      >
+                        J&apos;ai vérifié
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <div className="auth-actions">
+                  <button
+                    type="button"
+                    id="btn-force-sync"
+                    className="auth-primary-btn"
+                    disabled={cloud.syncStatus === 'syncing' || busy}
+                    onClick={handleSyncNow}
+                  >
+                    <RefreshCw
+                      size={15}
+                      className={cloud.syncStatus === 'syncing' ? 'spin' : ''}
+                    />
+                    <span>Synchroniser maintenant</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="auth-secondary-btn"
+                    style={{ color: '#dc2626', borderColor: 'rgba(220, 38, 38, 0.25)' }}
+                    disabled={busy}
+                    onClick={handleSignOut}
+                  >
+                    <LogOut size={15} />
+                    <span>Se déconnecter</span>
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         ) : (
           <div className="auth-login-body" id="auth-logged-out-panel">
