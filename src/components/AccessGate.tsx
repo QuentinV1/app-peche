@@ -1,6 +1,19 @@
 import { useState, type FormEvent } from 'react';
 import type { User } from 'firebase/auth';
-import { Cloud, Loader2, LogOut, RefreshCw, ShieldAlert, WifiOff } from 'lucide-react';
+import {
+  Anchor,
+  Camera,
+  Loader2,
+  LogIn,
+  LogOut,
+  Mail,
+  MapPin,
+  Navigation,
+  RefreshCw,
+  ShieldAlert,
+  UserPlus,
+  WifiOff,
+} from 'lucide-react';
 import {
   formatAuthError,
   signInWithEmail,
@@ -29,6 +42,7 @@ export function AccessGate({
   onRetryVerification,
   onSignOut,
 }: AccessGateProps) {
+  const [mode, setMode] = useState<'login' | 'register'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
@@ -70,7 +84,7 @@ export function AccessGate({
 
   const handleFormSubmit = (e: FormEvent) => {
     e.preventDefault();
-    void handleEmailAuth(false);
+    void handleEmailAuth(mode === 'register');
   };
 
   const handleSignOutClick = async () => {
@@ -83,199 +97,251 @@ export function AccessGate({
     }
   };
 
+  const highlights = [
+    {
+      icon: MapPin,
+      title: 'Zones & Mailles à jour',
+      desc: '5 857 zones maritimes, tailles légales et alertes sanitaires.',
+    },
+    {
+      icon: Navigation,
+      title: 'Carnet de prises & GPS',
+      desc: 'Enregistre tes captures, photos et tracés de session.',
+    },
+    {
+      icon: Camera,
+      title: 'Reconnaissance IA',
+      desc: 'Identification d’espèces par photo et spots recommandés.',
+    },
+  ];
+
   return (
     <div
-      className="auth-modal-backdrop"
+      className="split-auth-backdrop"
       id="access-gate-wall"
       role="dialog"
       aria-modal="true"
       aria-label="Contrôle d'accès Pêche France"
-      style={{ zIndex: 9999 }}
     >
-      <div className="auth-modal">
-        <div className="auth-modal-head">
-          <h2 style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Cloud size={20} color="var(--ocean)" />
-            <span>Pêche France — Accès</span>
-          </h2>
+      <div className="split-auth-card">
+        {/* Panneau éditorial */}
+        <div className="split-auth-editorial">
+          <div>
+            <div className="split-auth-brand">
+              <div className="split-auth-badge">
+                <Anchor size={24} color="#ffffff" />
+              </div>
+              <div>
+                <p className="split-auth-brand-title">Pêche France</p>
+                <p className="split-auth-brand-sub">Réglementation &amp; Carnet de prises</p>
+              </div>
+            </div>
+
+            <h1 className="split-auth-headline">
+              Prépare tes sorties en mer et en eau douce.
+            </h1>
+            <p className="split-auth-lead">
+              Synchronisé en temps réel sur tous tes appareils et accessible hors-ligne sur l&apos;eau.
+            </p>
+
+            <div className="split-auth-highlights">
+              {highlights.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <div key={item.title} className="split-auth-highlight">
+                    <div className="split-auth-highlight-icon">
+                      <Icon size={16} />
+                    </div>
+                    <div>
+                      <h3>{item.title}</h3>
+                      <p>{item.desc}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="split-auth-footer">
+            <WifiOff size={14} />
+            <span>Cartes &amp; réglementations disponibles hors-ligne</span>
+          </div>
         </div>
 
-        {gate.phase === 'loading' && (
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 12,
-              padding: '28px 12px',
-              textAlign: 'center',
-            }}
-          >
-            <Loader2 size={28} className="spin" color="var(--ocean)" />
-            <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--muted)' }}>
-              Vérification de votre session et de vos autorisations…
-            </p>
-          </div>
-        )}
+        {/* Formulaire */}
+        <div className="split-auth-form-pane">
+          {gate.phase === 'loading' && (
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 12,
+                padding: '40px 12px',
+                textAlign: 'center',
+              }}
+            >
+              <Loader2 size={28} className="spin" color="#0284c7" />
+              <p style={{ margin: 0, fontSize: '0.9rem', color: '#475569' }}>
+                Vérification de votre session et de vos autorisations…
+              </p>
+            </div>
+          )}
 
-        {gate.phase === 'unauthenticated' && (
-          <div className="auth-login-body" id="access-gate-login">
-            <p className="auth-intro">
-              Connexion requise pour accéder à l&apos;application Pêche France.
-              Connectez-vous une première fois en ligne pour activer l&apos;utilisation
-              hors-ligne en mer.
-            </p>
+          {gate.phase === 'unauthenticated' && (
+            <div id="access-gate-login">
+              <h2 className="split-auth-form-title">
+                {mode === 'login' ? 'Connexion à ton espace' : 'Créer ton compte'}
+              </h2>
+              <p className="split-auth-form-sub">
+                Utilise ton compte autorisé pour retrouver ton carnet et tes tracés GPS.
+              </p>
 
-            <form className="auth-form" onSubmit={handleFormSubmit}>
-              <label className="auth-field">
-                <span>Email</span>
+              <button
+                type="button"
+                className="split-auth-google-btn"
+                disabled={busy}
+                onClick={() => void handleGoogle()}
+              >
+                <LogIn size={16} />
+                <span>Continuer avec Google</span>
+              </button>
+
+              <div className="split-auth-divider">
+                <span>ou par e-mail</span>
+              </div>
+
+              <form onSubmit={handleFormSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <input
                   id="gate-auth-email"
                   type="email"
+                  required
                   autoComplete="email"
+                  className="split-auth-input"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="prenom@exemple.fr"
+                  placeholder="adresse@email.com"
                 />
-              </label>
 
-              <label className="auth-field">
-                <span>Mot de passe (6 car. min)</span>
                 <input
                   id="gate-auth-password"
                   type="password"
+                  required
                   minLength={6}
-                  autoComplete="current-password"
+                  autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
+                  className="split-auth-input"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
+                  placeholder="Mot de passe (6+ caractères)"
                 />
-              </label>
+
+                <button
+                  type="submit"
+                  className="split-auth-submit-btn"
+                  disabled={busy}
+                >
+                  {mode === 'register' ? <UserPlus size={16} /> : <Mail size={16} />}
+                  <span>{mode === 'register' ? 'Créer un compte' : 'Se connecter par e-mail'}</span>
+                </button>
+              </form>
+
+              <button
+                type="button"
+                className="split-auth-toggle-btn"
+                onClick={() => {
+                  setMode(mode === 'login' ? 'register' : 'login');
+                  setError(null);
+                }}
+              >
+                {mode === 'login'
+                  ? 'Pas encore de compte ? Créer un compte'
+                  : 'Déjà inscrit ? Se connecter'}
+              </button>
 
               {error && (
-                <p className="auth-error-msg" id="gate-auth-error">
+                <p
+                  className="auth-error-msg"
+                  id="gate-auth-error"
+                  style={{ marginTop: 12, textAlign: 'center' }}
+                >
                   {error}
                 </p>
               )}
+            </div>
+          )}
 
-              <div className="auth-actions">
+          {gate.phase === 'unauthorized' && (
+            <div className="auth-account-body" id="access-gate-unauthorized">
+              <div
+                className="auth-error-msg"
+                style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: 14 }}
+              >
+                <ShieldAlert size={20} style={{ flexShrink: 0, marginTop: 2 }} />
+                <div>
+                  <div style={{ fontWeight: 700, marginBottom: 4 }}>Accès non autorisé</div>
+                  <div style={{ fontSize: '0.84rem', lineHeight: 1.45 }}>
+                    Le compte <strong>{user?.email || gate.email}</strong> n&apos;est pas
+                    autorisé à accéder à cette application. Contactez un administrateur.
+                  </div>
+                </div>
+              </div>
+
+              <div className="auth-actions" style={{ marginTop: 12 }}>
                 <button
-                  type="submit"
-                  className="auth-primary-btn"
+                  type="button"
+                  className="split-auth-submit-btn"
                   disabled={busy}
+                  onClick={() => void handleSignOutClick()}
                 >
-                  Se connecter
+                  <LogOut size={15} />
+                  <span>Se déconnecter / Changer de compte</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {gate.phase === 'offline_unverified' && (
+            <div className="auth-account-body" id="access-gate-offline">
+              <div
+                className="auth-alert auth-alert-warn"
+                style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: 14 }}
+              >
+                <WifiOff size={20} style={{ flexShrink: 0, marginTop: 2 }} />
+                <div>
+                  <div style={{ fontWeight: 700, marginBottom: 4 }}>
+                    Connexion Internet requise pour vérifier vos autorisations
+                  </div>
+                  <div style={{ fontSize: '0.84rem', lineHeight: 1.45 }}>
+                    Aucune autorisation hors-ligne valide n&apos;a été trouvée pour{' '}
+                    <strong>{user?.email || gate.email}</strong>. Connectez-vous à Internet
+                    pour valider votre accès.
+                  </div>
+                </div>
+              </div>
+
+              <div className="auth-actions" style={{ marginTop: 12 }}>
+                <button
+                  type="button"
+                  className="split-auth-google-btn"
+                  disabled={busy}
+                  onClick={onRetryVerification}
+                >
+                  <RefreshCw size={15} />
+                  <span>Réessayer</span>
                 </button>
                 <button
                   type="button"
-                  className="auth-secondary-btn"
+                  className="split-auth-submit-btn"
                   disabled={busy}
-                  onClick={() => void handleEmailAuth(true)}
+                  onClick={() => void handleSignOutClick()}
                 >
-                  Créer un compte
-                </button>
-                <button
-                  type="button"
-                  className="auth-google-btn"
-                  disabled={busy}
-                  onClick={() => void handleGoogle()}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
-                    <path
-                      fill="#4285F4"
-                      d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17Z"
-                    />
-                    <path
-                      fill="#34A853"
-                      d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.96H1.29v3.14C3.26 21.3 7.31 24 12 24Z"
-                    />
-                    <path
-                      fill="#FBBC05"
-                      d="M5.28 14.24c-.24-.72-.38-1.49-.38-2.24s.14-1.52.38-2.24V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.99-3.14Z"
-                    />
-                    <path
-                      fill="#EA4335"
-                      d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.99 3.14c.95-2.85 3.6-4.96 6.72-4.96Z"
-                    />
-                  </svg>
-                  <span>Continuer avec Google</span>
+                  <LogOut size={15} />
+                  <span>Se déconnecter / Changer de compte</span>
                 </button>
               </div>
-            </form>
-          </div>
-        )}
-
-        {gate.phase === 'unauthorized' && (
-          <div className="auth-account-body" id="access-gate-unauthorized">
-            <div
-              className="auth-error-msg"
-              style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: 14 }}
-            >
-              <ShieldAlert size={20} style={{ flexShrink: 0, marginTop: 2 }} />
-              <div>
-                <div style={{ fontWeight: 700, marginBottom: 4 }}>Accès non autorisé</div>
-                <div style={{ fontSize: '0.84rem', lineHeight: 1.45 }}>
-                  Le compte <strong>{user?.email || gate.email}</strong> n&apos;est pas
-                  autorisé à accéder à cette application. Contactez un administrateur.
-                </div>
-              </div>
             </div>
-
-            <div className="auth-actions" style={{ marginTop: 12 }}>
-              <button
-                type="button"
-                className="auth-secondary-btn"
-                disabled={busy}
-                onClick={() => void handleSignOutClick()}
-              >
-                <LogOut size={15} />
-                <span>Se déconnecter / Changer de compte</span>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {gate.phase === 'offline_unverified' && (
-          <div className="auth-account-body" id="access-gate-offline">
-            <div
-              className="auth-alert auth-alert-warn"
-              style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: 14 }}
-            >
-              <WifiOff size={20} style={{ flexShrink: 0, marginTop: 2 }} />
-              <div>
-                <div style={{ fontWeight: 700, marginBottom: 4 }}>
-                  Connexion Internet requise pour vérifier vos autorisations
-                </div>
-                <div style={{ fontSize: '0.84rem', lineHeight: 1.45 }}>
-                  Aucune autorisation hors-ligne valide n&apos;a été trouvée pour{' '}
-                  <strong>{user?.email || gate.email}</strong>. Connectez-vous à Internet
-                  pour valider votre accès.
-                </div>
-              </div>
-            </div>
-
-            <div className="auth-actions" style={{ marginTop: 12 }}>
-              <button
-                type="button"
-                className="auth-primary-btn"
-                disabled={busy}
-                onClick={onRetryVerification}
-              >
-                <RefreshCw size={15} />
-                <span>Réessayer</span>
-              </button>
-              <button
-                type="button"
-                className="auth-secondary-btn"
-                disabled={busy}
-                onClick={() => void handleSignOutClick()}
-              >
-                <LogOut size={15} />
-                <span>Se déconnecter / Changer de compte</span>
-              </button>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

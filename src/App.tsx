@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { User } from 'firebase/auth';
-import { BookOpen, Camera, Cloud, Droplets, Fish, Info, Map as MapIcon, Route, User as UserIcon, Waves } from 'lucide-react';
+import { BookOpen, Camera, Cloud, Droplets, Fish, Info, Map as MapIcon, MessageSquarePlus, Route, User as UserIcon, Waves } from 'lucide-react';
 import type {
   DataManifest,
   FishingSession,
@@ -38,6 +38,7 @@ import {
 } from './services/sessionStore';
 import { findZonesAtPoint } from './services/zoneProximity';
 import { AuthModal } from './components/AuthModal';
+import { FeedbackModal } from './components/FeedbackModal';
 import { AccessGate, type AccessGateState } from './components/AccessGate';
 import { FranceMap } from './components/FranceMap';
 import { TracksPanel } from './components/TracksPanel';
@@ -77,6 +78,7 @@ export function App() {
   const [user, setUser] = useState<User | null>(null);
   const [gate, setGate] = useState<AccessGateState>({ phase: 'loading' });
   const [authOpen, setAuthOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [cloud, setCloud] = useState<CloudState>({ ...cloudState });
   const userRef = useRef<User | null>(null);
   const watchIdRef = useRef<number | null>(null);
@@ -490,6 +492,17 @@ export function App() {
           </span>
           <button
             type="button"
+            id="btn-feedback-header"
+            className="auth-header-btn"
+            onClick={() => setFeedbackOpen(true)}
+            title="Envoyer un feedback (évolution ou bug)"
+            aria-label="Envoyer un feedback"
+          >
+            <MessageSquarePlus size={14} aria-hidden="true" />
+            <span>Feedback</span>
+          </button>
+          <button
+            type="button"
             id="btn-auth-header"
             className={`auth-header-btn ${user ? 'auth-header-btn-signed' : ''}`}
             onClick={() => setAuthOpen(true)}
@@ -640,6 +653,13 @@ export function App() {
         cloud={cloud}
         onClose={() => setAuthOpen(false)}
         onUserUpdated={setUser}
+      />
+      <FeedbackModal
+        open={feedbackOpen}
+        user={user}
+        db={getFirebaseDb()}
+        context={`tab=${tab}; env=${environment}; facade=${selectedFacade}`}
+        onClose={() => setFeedbackOpen(false)}
       />
     </div>
   );
