@@ -156,6 +156,20 @@ export interface SessionPoint {
   lng: number;
   timestamp: string;
   accuracy?: number;
+  speedKts?: number;
+  speedKmh?: number;
+  headingDeg?: number;
+}
+
+export type WaypointKind = 'spot' | 'catch' | 'anchor' | 'hazard';
+
+export interface SessionWaypoint {
+  id: string;
+  lat: number;
+  lng: number;
+  label: string;
+  kind: WaypointKind;
+  timestamp: string;
 }
 
 export interface FishingSession {
@@ -167,5 +181,9 @@ export interface FishingSession {
   status: 'active' | 'paused' | 'completed';
   environment: 'sea' | 'freshwater';
   points: SessionPoint[];
+  waypoints?: SessionWaypoint[];
   distanceKm: number;
+  maxSpeedKts?: number;
+  avgSpeedKts?: number;
+  source?: 'gps' | 'gpx';
 }

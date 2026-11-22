@@ -223,4 +223,42 @@ test.describe('Pêche France — Parcours clés V1', () => {
     await page.getByRole('button', { name: 'IA / Mesure', exact: true }).click();
     await expect(page.locator('.info-card h2')).toContainText('IA Reconnaissance & Mesure caméra');
   });
+
+  test('V4 — photos des espèces, toggle schéma, cockpit Nav&Co et import GPX', async ({ page }) => {
+    await page.goto('/');
+
+    // Photos réelles des espèces + bascule Schéma / Photo
+    await page.getByRole('button', { name: 'Mailles', exact: true }).click();
+    const firstImg = page.locator('.species-photo-img').first();
+    await expect(firstImg).toBeVisible();
+    await expect(firstImg).toHaveAttribute('src', /\/images\/species\/.+\.jpg$/);
+
+    await page.locator('.species-visual-toggle').first().click();
+    await expect(page.locator('.species-visual-svg').first()).toBeVisible();
+    await page.locator('.species-visual-toggle').first().click();
+    await expect(firstImg).toBeVisible();
+
+    // Import GPX (iPhone / Apple Watch)
+    await page.getByRole('button', { name: 'Tracés', exact: true }).click();
+    const gpxPayload = `<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="Test">
+  <trk>
+    <name>Sortie GPX Concarneau</name>
+    <trkseg>
+      <trkpt lat="47.8700" lon="-3.9200"><time>2026-11-20T08:00:00Z</time></trkpt>
+      <trkpt lat="47.8750" lon="-3.9250"><time>2026-11-20T08:15:00Z</time></trkpt>
+    </trkseg>
+  </trk>
+  <wpt lat="47.8750" lon="-3.9250"><name>Roche aux bars</name><type>spot</type></wpt>
+</gpx>`;
+    await page.locator('input[type="file"][accept*=".gpx"]').setInputFiles({
+      name: 'concarneau.gpx',
+      mimeType: 'application/gpx+xml',
+      buffer: Buffer.from(gpxPayload, 'utf8'),
+    });
+
+    await expect(page.locator('.cards-list')).toContainText('Sortie GPX Concarneau');
+    await expect(page.locator('.cards-list')).toContainText('GPX');
+    await expect(page.locator('.cards-list')).toContainText('1 point marqué');
+  });
 });

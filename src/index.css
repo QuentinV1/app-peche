@@ -1,23 +1,23 @@
 :root {
   --ocean: #0b5d7a;
   --ocean-dark: #06374d;
-  --ocean-accent: #0891b2;
+  --ocean-accent: #0ea5e9;
   --ocean-light: #e0f4fa;
-  --ocean-tint: rgba(8, 145, 178, 0.11);
-  --header-gradient: linear-gradient(135deg, #052b3d 0%, #0b5270 55%, #0e7490 100%);
-  --bg: #f4f7fb;
+  --ocean-tint: rgba(14, 165, 233, 0.12);
+  --header-gradient: linear-gradient(135deg, #042334 0%, #0a4f6e 54%, #0284c7 100%);
+  --bg: #eef3f8;
   --surface: #ffffff;
-  --surface-elevated: rgba(255, 255, 255, 0.92);
+  --surface-elevated: rgba(255, 255, 255, 0.9);
   --text: #0f172a;
   --muted: #64748b;
-  --border: rgba(15, 23, 42, 0.08);
-  --border-strong: rgba(15, 23, 42, 0.14);
-  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04), 0 2px 8px rgba(15, 23, 42, 0.03);
-  --shadow-md: 0 6px 18px rgba(15, 23, 42, 0.07), 0 2px 4px rgba(15, 23, 42, 0.04);
-  --shadow-lg: 0 18px 42px rgba(15, 23, 42, 0.16), 0 4px 12px rgba(15, 23, 42, 0.08);
-  --radius-sm: 10px;
-  --radius-md: 16px;
-  --radius-lg: 20px;
+  --border: rgba(15, 23, 42, 0.07);
+  --border-strong: rgba(15, 23, 42, 0.13);
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.04), 0 4px 12px rgba(15, 23, 42, 0.03);
+  --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.08), 0 2px 6px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 20px 48px rgba(15, 23, 42, 0.16), 0 4px 14px rgba(15, 23, 42, 0.08);
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-lg: 22px;
 }
 
 .app-shell[data-env='freshwater'] {
@@ -1820,4 +1820,289 @@ a:focus-visible {
     padding: 4px 8px;
     font-size: 0.7rem;
   }
+}
+
+/* ── Photos des espèces & Toggle Schéma ─────────────────────────────── */
+.species-photo-box {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #0f172a;
+  height: 132px;
+  border: 1px solid var(--border);
+}
+
+.species-photo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.35s ease;
+}
+
+.rule-card:hover .species-photo-img {
+  transform: scale(1.03);
+}
+
+.species-photo-overlay {
+  position: absolute;
+  inset: auto 0 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 22px 10px 8px;
+  background: linear-gradient(to top, rgba(3, 24, 38, 0.82), rgba(3, 24, 38, 0));
+}
+
+.species-measure-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  color: #b91c1c;
+  font-size: 0.74rem;
+  font-weight: 800;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.species-visual-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(15, 23, 42, 0.65);
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  margin-left: auto;
+}
+
+.species-visual-toggle:hover {
+  background: rgba(15, 23, 42, 0.85);
+}
+
+.species-visual-toggle-float {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+}
+
+/* ── Cockpit Tracé Nav&Co + Mode Nuit iPhone ────────────────────────── */
+.track-header-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.gpx-badge {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 3px 7px;
+  border-radius: 6px;
+  background: rgba(14, 165, 233, 0.12);
+  color: var(--ocean-dark);
+  border: 1px solid rgba(14, 165, 233, 0.26);
+}
+
+.track-cockpit {
+  border: 1.5px solid var(--ocean-accent);
+  transition: background 0.25s ease, color 0.25s ease;
+}
+
+.track-cockpit-dark {
+  background: linear-gradient(155deg, #061320 0%, #0a1f33 100%);
+  color: #f8fafc;
+  border-color: rgba(56, 189, 248, 0.4);
+  box-shadow: 0 14px 36px rgba(2, 12, 24, 0.45);
+}
+
+.track-cockpit-dark .scientific-name {
+  color: #94a3b8;
+}
+
+.cockpit-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.wakelock-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.16);
+  color: #64748b;
+}
+
+.track-cockpit-dark .wakelock-pill {
+  color: #94a3b8;
+}
+
+.wakelock-on {
+  background: rgba(16, 185, 129, 0.18);
+  color: #059669;
+}
+
+.track-cockpit-dark .wakelock-on {
+  color: #34d399;
+}
+
+.cockpit-theme-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid var(--border-strong);
+  background: rgba(148, 163, 184, 0.12);
+  color: inherit;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.cockpit-zone-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: rgba(239, 68, 68, 0.14);
+  border: 1px solid rgba(239, 68, 68, 0.36);
+  color: #fca5a5;
+  font-size: 0.79rem;
+  line-height: 1.35;
+}
+
+.track-cockpit:not(.track-cockpit-dark) .cockpit-zone-alert {
+  color: #b91c1c;
+}
+
+.cockpit-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.cockpit-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 11px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.04);
+  border: 1px solid var(--border);
+}
+
+.track-cockpit-dark .cockpit-stat {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.cockpit-stat-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.track-cockpit-dark .cockpit-stat-label {
+  color: #7dd3fc;
+}
+
+.cockpit-stat-value {
+  font-size: 1.15rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.cockpit-stat-sub {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.track-cockpit-dark .cockpit-stat-sub {
+  color: #94a3b8;
+}
+
+.cockpit-waypoints {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.cockpit-wp-input {
+  width: 100%;
+  padding: 7px 10px;
+  border-radius: 9px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.82rem;
+}
+
+.track-cockpit-dark .cockpit-wp-input {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #f8fafc;
+}
+
+.cockpit-wp-btns {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 7px;
+}
+
+.cockpit-wp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 7px 6px;
+  border-radius: 9px;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  background: rgba(14, 165, 233, 0.14);
+  color: inherit;
+  font-size: 0.73rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cockpit-wp-btn:hover {
+  background: rgba(14, 165, 233, 0.24);
+}
+
+.cockpit-wp-count {
+  margin: 6px 0 0;
+  font-size: 0.73rem;
+  color: #38bdf8;
+  font-weight: 600;
+}
+
+.track-cockpit-dark .chip {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.22);
+  color: #f8fafc;
 }

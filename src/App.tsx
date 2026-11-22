@@ -6,9 +6,14 @@ import type {
   FishingSession,
   RegulationRule,
   SanitaryAlert,
+  SessionPoint,
+  SessionWaypoint,
   Species,
+  WaypointKind,
+  ZoneProperties,
 } from '../schema/types';
-import { loadCoreData, type FacadeCode } from './services/dataStore';
+import type { FeatureCollection, Geometry } from 'geojson';
+import { loadCoreData, loadFacadeZones, type FacadeCode } from './services/dataStore';
 import { observerAuth } from './services/firebase';
 import {
   activerSyncCloud,
@@ -22,11 +27,15 @@ import {
   type CloudState,
 } from './services/cloudSync';
 import {
+  computeBearingDeg,
+  computeSessionSpeeds,
   computeTrackDistanceKm,
   deleteSession,
+  haversineKm,
   listSessions,
   saveSession,
 } from './services/sessionStore';
+import { findZonesAtPoint } from './services/zoneProximity';
 import { AuthModal } from './components/AuthModal';
 import { FranceMap } from './components/FranceMap';
 import { TracksPanel } from './components/TracksPanel';
@@ -61,10 +70,14 @@ export function App() {
   const [activeSession, setActiveSession] = useState<FishingSession | null>(null);
   const [savedSessions, setSavedSessions] = useState<FishingSession[]>([]);
   const [displayedSession, setDisplayedSession] = useState<FishingSession | null>(null);
+  const [wakeLockActive, setWakeLockActive] = useState(false);
+  const [activeZonesAlert, setActiveZonesAlert] = useState<ZoneProperties[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
   const [cloud, setCloud] = useState<CloudState>({ ...cloudState });
   const watchIdRef = useRef<number | null>(null);
+  const wakeLockRef = useRef<WakeLockSentinel | null>(null);
+  const facadeZonesCacheRef = useRef<FeatureCollection<Geometry, ZoneProperties> | null>(null);
   const currentFacadeRef = useRef<FacadeCode>(initialSettings.selectedFacade);
   const currentEnvRef = useRef<FishingEnvironment>(initialSettings.environment);
 
@@ -141,29 +154,122 @@ export function App() {
   }, [syncData]);
 
   useEffect(() => {
+    if (activeSession?.environment === 'sea') {
+      loadFacadeZones(selectedFacade)
+        .then((geojson) => {
+          facadeZonesCacheRef.current = geojson;
+        })
+        .catch(() => {});
+    }
+  }, [activeSession?.environment, selectedFacade]);
+
+  useEffect(() => {
+    if (activeSession?.status !== 'active') {
+      if (wakeLockRef.current) {
+        wakeLockRef.current.release().catch(() => {});
+        wakeLockRef.current = null;
+      }
+      setWakeLockActive(false);
+      return;
+    }
+
+    let cancelled = false;
+    const requestWakeLock = async () => {
+      if (!('wakeLock' in navigator) || !navigator.wakeLock) return;
+      try {
+        const sentinel = await navigator.wakeLock.request('screen');
+        if (cancelled) {
+          sentinel.release().catch(() => {});
+          return;
+        }
+        wakeLockRef.current = sentinel;
+        setWakeLockActive(true);
+        sentinel.addEventListener('release', () => {
+          if (!cancelled) setWakeLockActive(false);
+        });
+      } catch {
+        setWakeLockActive(false);
+      }
+    };
+
+    requestWakeLock();
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        requestWakeLock();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      cancelled = true;
+      document.removeEventListener('visibilitychange', onVisibility);
+      if (wakeLockRef.current) {
+        wakeLockRef.current.release().catch(() => {});
+        wakeLockRef.current = null;
+      }
+      setWakeLockActive(false);
+    };
+  }, [activeSession?.status]);
+
+  useEffect(() => {
     if (activeSession?.status !== 'active' || !navigator.geolocation) {
       if (watchIdRef.current !== null) {
         navigator.geolocation.clearWatch(watchIdRef.current);
         watchIdRef.current = null;
       }
+      if (!activeSession) setActiveZonesAlert([]);
       return;
     }
 
     const watchId = navigator.geolocation.watchPosition(
       (pos) => {
-        const pt = {
+        const nowIso = new Date().toISOString();
+        const rawSpeedMs = pos.coords.speed;
+        const rawHeading = pos.coords.heading;
+        const basePt: SessionPoint = {
           lat: Number(pos.coords.latitude.toFixed(6)),
           lng: Number(pos.coords.longitude.toFixed(6)),
-          timestamp: new Date().toISOString(),
+          timestamp: nowIso,
           accuracy: Math.round(pos.coords.accuracy),
         };
+
+        if (facadeZonesCacheRef.current) {
+          const hits = findZonesAtPoint(basePt.lng, basePt.lat, facadeZonesCacheRef.current)
+            .filter((z) => z.type === 'prohibition' || z.type === 'reserve' || z.type === 'sanitary');
+          setActiveZonesAlert(hits.slice(0, 3));
+        }
+
         setActiveSession((prev) => {
           if (!prev || prev.status !== 'active') return prev;
+          const lastPt = prev.points[prev.points.length - 1];
+          const pt: SessionPoint = { ...basePt };
+          if (rawSpeedMs !== null && Number.isFinite(rawSpeedMs) && rawSpeedMs >= 0) {
+            pt.speedKmh = Number((rawSpeedMs * 3.6).toFixed(1));
+            pt.speedKts = Number((rawSpeedMs * 1.94384).toFixed(1));
+          } else if (lastPt) {
+            const dtHours = (Date.parse(nowIso) - Date.parse(lastPt.timestamp)) / 3_600_000;
+            const dKm = haversineKm(lastPt, basePt);
+            if (dtHours > 0.0002) {
+              const kmh = dKm / dtHours;
+              if (kmh <= 120) {
+                pt.speedKmh = Number(kmh.toFixed(1));
+                pt.speedKts = Number((kmh / 1.852).toFixed(1));
+              }
+            }
+          }
+          if (rawHeading !== null && Number.isFinite(rawHeading) && rawHeading >= 0) {
+            pt.headingDeg = Math.round(rawHeading);
+          } else if (lastPt && haversineKm(lastPt, basePt) > 0.003) {
+            pt.headingDeg = computeBearingDeg(lastPt, basePt);
+          }
+
           const nextPoints = [...prev.points, pt];
+          const speeds = computeSessionSpeeds(nextPoints);
           const updated: FishingSession = {
             ...prev,
             points: nextPoints,
             distanceKm: computeTrackDistanceKm(nextPoints),
+            maxSpeedKts: speeds.maxSpeedKts,
+            avgSpeedKts: speeds.avgSpeedKts,
           };
           saveSession(updated).catch(() => {});
           return updated;
@@ -220,15 +326,65 @@ export function App() {
 
   const handleStopSession = async () => {
     if (!activeSession) return;
+    const speeds = computeSessionSpeeds(activeSession.points);
     const finished: FishingSession = {
       ...activeSession,
       status: 'completed',
       endedAt: new Date().toISOString(),
+      maxSpeedKts: speeds.maxSpeedKts,
+      avgSpeedKts: speeds.avgSpeedKts,
     };
     await saveSession(finished);
     setActiveSession(null);
+    setActiveZonesAlert([]);
     setDisplayedSession(finished);
     setSavedSessions(await listSessions());
+  };
+
+  const handleAddWaypoint = async (kind: WaypointKind, label: string) => {
+    if (!activeSession) return;
+    const lastPt = activeSession.points[activeSession.points.length - 1];
+    let lat = lastPt?.lat;
+    let lng = lastPt?.lng;
+
+    if ((lat === undefined || lng === undefined) && navigator.geolocation) {
+      await new Promise<void>((resolve) => {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            lat = Number(pos.coords.latitude.toFixed(6));
+            lng = Number(pos.coords.longitude.toFixed(6));
+            resolve();
+          },
+          () => resolve(),
+          { enableHighAccuracy: true, timeout: 6000 },
+        );
+      });
+    }
+    if (lat === undefined || lng === undefined) return;
+
+    const wp: SessionWaypoint = {
+      id: `wp-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      lat,
+      lng,
+      label: label.trim() || 'Point GPS',
+      kind,
+      timestamp: new Date().toISOString(),
+    };
+    setActiveSession((prev) => {
+      if (!prev) return null;
+      const updated: FishingSession = {
+        ...prev,
+        waypoints: [...(prev.waypoints ?? []), wp],
+      };
+      saveSession(updated).catch(() => {});
+      return updated;
+    });
+  };
+
+  const handleImportGpxSession = async (session: FishingSession) => {
+    await saveSession(session);
+    setSavedSessions(await listSessions());
+    setDisplayedSession(session);
   };
 
   const handleUpdateSessionMeta = async (id: string, name: string, date: string) => {
@@ -317,9 +473,13 @@ export function App() {
             activeSession={activeSession}
             savedSessions={savedSessions}
             displayedSession={displayedSession}
+            wakeLockActive={wakeLockActive}
+            activeZonesAlert={activeZonesAlert}
             onStartSession={handleStartSession}
             onTogglePauseSession={handleTogglePauseSession}
             onStopSession={handleStopSession}
+            onAddWaypoint={handleAddWaypoint}
+            onImportGpxSession={handleImportGpxSession}
             onUpdateSessionMeta={handleUpdateSessionMeta}
             onDeleteSession={handleDeleteSession}
             onShowOnMap={(session) => {

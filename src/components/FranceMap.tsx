@@ -295,6 +295,42 @@ export function FranceMap({
           'circle-stroke-width': 2,
         },
       });
+      map.addLayer({
+        id: 'session-track-waypoints',
+        type: 'circle',
+        source: 'session-track',
+        filter: ['==', ['get', 'kind'], 'waypoint'],
+        paint: {
+          'circle-radius': 6,
+          'circle-color': [
+            'match',
+            ['get', 'waypointKind'],
+            'catch', '#16a34a',
+            'anchor', '#0284c7',
+            'hazard', '#dc2626',
+            '#d97706',
+          ],
+          'circle-stroke-color': '#ffffff',
+          'circle-stroke-width': 2,
+        },
+      });
+      map.addLayer({
+        id: 'session-track-waypoint-labels',
+        type: 'symbol',
+        source: 'session-track',
+        filter: ['==', ['get', 'kind'], 'waypoint'],
+        layout: {
+          'text-field': ['get', 'label'],
+          'text-size': 11,
+          'text-offset': [0, 1.3],
+          'text-anchor': 'top',
+        },
+        paint: {
+          'text-color': '#0f172a',
+          'text-halo-color': '#ffffff',
+          'text-halo-width': 1.5,
+        },
+      });
 
       // Clic sur une zone réglementaire
       map.on('click', 'fishing-zones-fill', (e) => {

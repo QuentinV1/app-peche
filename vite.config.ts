@@ -48,7 +48,7 @@ export default defineConfig({
       },
       workbox: {
         maximumFileSizeToCacheInBytes: 15 * 1024 * 1024,
-        globPatterns: ['**/*.{js,css,html,svg,png,json}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,jpg,json}'],
         runtimeCaching: [
           {
             urlPattern: /\/data\/(facades|admin)\/.*\.geojson$/,

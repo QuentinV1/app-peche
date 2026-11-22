@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { Image as ImageIcon, Ruler } from 'lucide-react';
 import type { SpeciesCategory } from '../../schema/types';
 
 interface SpeciesVisualProps {
@@ -513,6 +515,43 @@ export function SpeciesVisual({
     }
   };
 
+  const [imgFailed, setImgFailed] = useState(false);
+  const [showDiagram, setShowDiagram] = useState(false);
+  const photoSrc = `${import.meta.env.BASE_URL}images/species/${speciesId}.jpg`;
+  const measureLabel = formatMeasureLabel(minSizeCm, minWeightG);
+
+  if (!imgFailed && !showDiagram) {
+    return (
+      <div className="species-visual-box species-photo-box">
+        <img
+          src={photoSrc}
+          alt={commonName}
+          className="species-photo-img"
+          loading="lazy"
+          onError={() => setImgFailed(true)}
+        />
+        <div className="species-photo-overlay">
+          {(minSizeCm !== undefined || minWeightG !== undefined) && (
+            <span className="species-measure-pill">
+              <Ruler size={11} aria-hidden="true" />
+              Min. {measureLabel}
+            </span>
+          )}
+          <button
+            type="button"
+            className="species-visual-toggle"
+            onClick={() => setShowDiagram(true)}
+            title="Voir le schéma de mesure"
+            aria-label={`Voir le schéma de mesure pour ${commonName}`}
+          >
+            <Ruler size={12} aria-hidden="true" />
+            Schéma
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="species-visual-box">
       <svg
@@ -530,6 +569,18 @@ export function SpeciesVisual({
         <rect x="0" y="0" width="250" height="96" rx="8" fill="url(#ruler-grid)" />
         {renderIllustration()}
       </svg>
+      {!imgFailed && (
+        <button
+          type="button"
+          className="species-visual-toggle species-visual-toggle-float"
+          onClick={() => setShowDiagram(false)}
+          title="Voir la photo"
+          aria-label={`Voir la photo pour ${commonName}`}
+        >
+          <ImageIcon size={12} aria-hidden="true" />
+          Photo
+        </button>
+      )}
     </div>
   );
 }
