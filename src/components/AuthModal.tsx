@@ -11,20 +11,18 @@ import {
 import {
   formatAuthError,
   initFirebase,
-  reloadFirebaseUser,
-  resendVerificationEmail,
   signInWithEmail,
   signInWithGoogle,
   signOutUser,
   signUpWithEmail,
 } from '../services/firebase';
 import {
-  activerSyncCloud,
   forcerSyncCloud,
   reinitialiserEtatCloud,
   type CloudState,
 } from '../services/cloudSync';
 import {
+  clearHubAuthCache,
   resolveUserAccess,
   type AccessStatus,
 } from '../services/accessControl';
@@ -49,16 +47,13 @@ export function AuthModal({
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [unverifiedMsg, setUnverifiedMsg] = useState<string>(
-    'Vérifiez votre boîte mail (ou utilisez « Continuer avec Google »).',
-  );
   const [accessStatus, setAccessStatus] = useState<AccessStatus | null>(null);
   const [activeTab, setActiveTab] = useState<'account' | 'access'>('account');
   const db = initFirebase()?.db ?? null;
 
   useEffect(() => {
     let cancelled = false;
-    if (!open || !user || !user.emailVerified || !db || !user.email) {
+    if (!open || !user || !db || !user.email) {
       setAccessStatus(null);
       setActiveTab('account');
       return;
@@ -76,7 +71,7 @@ export function AuthModal({
     return () => {
       cancelled = true;
     };
-  }, [open, user?.uid, user?.emailVerified, user?.email, db]);
+  }, [open, user?.uid, user?.email, db]);
 
   if (!open) return null;
 
@@ -119,42 +114,6 @@ export function AuthModal({
     handleEmailAuth(false);
   };
 
-  const handleResendVerification = async () => {
-    setBusy(true);
-    try {
-      const sent = await resendVerificationEmail();
-      setUnverifiedMsg(
-        sent
-          ? "E-mail de vérification envoyé ! Vérifiez votre boîte de réception (et les spams), puis cliquez sur « J'ai vérifié »."
-          : 'Votre adresse est déjà vérifiée.',
-      );
-    } catch (err) {
-      setUnverifiedMsg(formatAuthError(err));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const handleCheckVerification = async () => {
-    setBusy(true);
-    try {
-      const refreshed = await reloadFirebaseUser();
-      if (refreshed?.emailVerified) {
-        await refreshed.getIdToken(true);
-        onUserUpdated(refreshed);
-        await activerSyncCloud();
-      } else {
-        setUnverifiedMsg(
-          "Adresse toujours non vérifiée. Cliquez d'abord sur le lien reçu par e-mail.",
-        );
-      }
-    } catch (err) {
-      setUnverifiedMsg(formatAuthError(err));
-    } finally {
-      setBusy(false);
-    }
-  };
-
   const handleSyncNow = async () => {
     setBusy(true);
     setError(null);
@@ -172,6 +131,7 @@ export function AuthModal({
     setBusy(true);
     setError(null);
     try {
+      clearHubAuthCache('app-peche');
       await signOutUser();
       reinitialiserEtatCloud();
       onUserUpdated(null);
@@ -334,43 +294,6 @@ export function AuthModal({
                   <p className="auth-error-msg" id="auth-sync-error-msg">
                     {cloud.syncError || error}
                   </p>
-                )}
-
-                {!user.emailVerified && (
-                  <div
-                    id="auth-unverified-box"
-                    className="auth-alert auth-alert-warn"
-                    style={{ flexDirection: 'column', gap: 8 }}
-                  >
-                    <div style={{ fontWeight: 700, color: '#b45309' }}>
-                      Adresse e-mail non vérifiée
-                    </div>
-                    <div id="auth-unverified-msg" style={{ fontSize: '0.8rem', color: '#78350f' }}>
-                      {unverifiedMsg}
-                    </div>
-                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                      <button
-                        type="button"
-                        id="btn-resend-verif"
-                        className="auth-secondary-btn"
-                        style={{ width: 'auto', padding: '6px 12px', fontSize: '0.78rem' }}
-                        disabled={busy}
-                        onClick={handleResendVerification}
-                      >
-                        Renvoyer l&apos;e-mail de vérification
-                      </button>
-                      <button
-                        type="button"
-                        id="btn-check-verif"
-                        className="auth-primary-btn"
-                        style={{ width: 'auto', padding: '6px 12px', fontSize: '0.78rem' }}
-                        disabled={busy}
-                        onClick={handleCheckVerification}
-                      >
-                        J&apos;ai vérifié
-                      </button>
-                    </div>
-                  </div>
                 )}
 
                 <div className="auth-actions">

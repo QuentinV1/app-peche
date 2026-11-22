@@ -14,7 +14,8 @@ import type {
 } from '../schema/types';
 import type { FeatureCollection, Geometry } from 'geojson';
 import { loadCoreData, loadFacadeZones, type FacadeCode } from './services/dataStore';
-import { observerAuth } from './services/firebase';
+import { getFirebaseDb, observerAuth, signOutUser } from './services/firebase';
+import { clearHubAuthCache, verifyUserAccess } from './services/accessControl';
 import {
   activerSyncCloud,
   cloudState,
@@ -37,6 +38,7 @@ import {
 } from './services/sessionStore';
 import { findZonesAtPoint } from './services/zoneProximity';
 import { AuthModal } from './components/AuthModal';
+import { AccessGate, type AccessGateState } from './components/AccessGate';
 import { FranceMap } from './components/FranceMap';
 import { TracksPanel } from './components/TracksPanel';
 import { SpeciesPanel } from './components/SpeciesPanel';
@@ -73,8 +75,10 @@ export function App() {
   const [wakeLockActive, setWakeLockActive] = useState(false);
   const [activeZonesAlert, setActiveZonesAlert] = useState<ZoneProperties[]>([]);
   const [user, setUser] = useState<User | null>(null);
+  const [gate, setGate] = useState<AccessGateState>({ phase: 'loading' });
   const [authOpen, setAuthOpen] = useState(false);
   const [cloud, setCloud] = useState<CloudState>({ ...cloudState });
+  const userRef = useRef<User | null>(null);
   const watchIdRef = useRef<number | null>(null);
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
   const facadeZonesCacheRef = useRef<FeatureCollection<Geometry, ZoneProperties> | null>(null);
@@ -116,10 +120,42 @@ export function App() {
     }
   }, []);
 
+  const runAccessCheck = useCallback(async (targetUser: User, background = false) => {
+    if (!background) {
+      setGate({ phase: 'loading' });
+    }
+    const res = await verifyUserAccess(getFirebaseDb(), 'app-peche', targetUser);
+    if (userRef.current?.uid !== targetUser.uid) return;
+    if (res.outcome === 'authorized') {
+      setGate({ phase: 'authorized', status: res.status, offline: res.offline });
+      activerSyncCloud().catch(() => {});
+    } else if (res.outcome === 'unauthorized') {
+      reinitialiserEtatCloud();
+      setGate({ phase: 'unauthorized', email: res.email });
+    } else {
+      reinitialiserEtatCloud();
+      setGate({ phase: 'offline_unverified', email: res.email });
+    }
+  }, []);
+
+  const handleGateSignOut = useCallback(async () => {
+    clearHubAuthCache('app-peche');
+    reinitialiserEtatCloud();
+    await signOutUser();
+    userRef.current = null;
+    setUser(null);
+    setGate({ phase: 'unauthenticated' });
+  }, []);
+
   useEffect(() => {
     syncData(false);
     listSessions().then(setSavedSessions).catch(() => {});
-    const onOnline = () => setIsOnline(true);
+    const onOnline = () => {
+      setIsOnline(true);
+      if (userRef.current) {
+        void runAccessCheck(userRef.current, true);
+      }
+    };
     const onOffline = () => setIsOnline(false);
     window.addEventListener('online', onOnline);
     window.addEventListener('offline', onOffline);
@@ -135,11 +171,13 @@ export function App() {
       setSelectedFacadeState(nextSettings.selectedFacade);
     });
     const unsubAuth = observerAuth((nextUser) => {
+      userRef.current = nextUser;
       setUser(nextUser);
       if (nextUser) {
-        activerSyncCloud().catch(() => {});
+        void runAccessCheck(nextUser, false);
       } else {
         reinitialiserEtatCloud();
+        setGate({ phase: 'unauthenticated' });
       }
     });
 
@@ -151,7 +189,7 @@ export function App() {
       unsubSettings();
       unsubAuth();
     };
-  }, [syncData]);
+  }, [syncData, runAccessCheck]);
 
   useEffect(() => {
     if (activeSession?.environment === 'sea') {
@@ -401,6 +439,23 @@ export function App() {
     if (displayedSession?.id === id) setDisplayedSession(null);
     setSavedSessions(await listSessions());
   };
+
+  if (gate.phase !== 'authorized') {
+    return (
+      <div className="app-shell" data-env={environment}>
+        <AccessGate
+          gate={gate}
+          user={user}
+          onRetryVerification={() => {
+            if (userRef.current) {
+              void runAccessCheck(userRef.current, false);
+            }
+          }}
+          onSignOut={handleGateSignOut}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="app-shell" data-env={environment}>

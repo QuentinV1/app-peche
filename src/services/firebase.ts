@@ -193,7 +193,7 @@ export function formatAuthError(err: unknown): string {
       ? String((err as { code?: unknown }).code)
       : '';
   if (code === 'permission-denied' || code === 'firestore/permission-denied') {
-    return 'Accès Firestore refusé (vérifiez que votre e-mail est bien vérifié et autorisé).';
+    return 'Accès Firestore refusé (vérifiez que votre compte est bien autorisé).';
   }
   switch (code) {
     case 'auth/invalid-email':
