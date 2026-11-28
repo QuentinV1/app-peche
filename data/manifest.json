@@ -1,13 +1,13 @@
 {
-  "version": "2026.11.27.1",
-  "generatedAt": "2026-11-27T15:41:46.735Z",
+  "version": "2026.11.28.1",
+  "generatedAt": "2026-11-28T14:37:59.332Z",
   "sources": [
     {
       "id": "cacem",
       "name": "Zones réglementaires CACEM",
       "datasetId": "682ae3040ebe621687ec64ad",
-      "url": "https://static.data.gouv.fr/resources/zones-reglementaires-cacem/20261125-080624/regulatory-areas.csv",
-      "lastModified": "2026-11-25T08:06:49.049000+00:00",
+      "url": "https://static.data.gouv.fr/resources/zones-reglementaires-cacem/20261127-200039/regulatory-areas.csv",
+      "lastModified": "2026-11-27T20:00:49.033000+00:00",
       "recordCount": 4668
     },
     {
@@ -29,10 +29,10 @@
     "species.json": "caa6f232d8026003",
     "regulations.json": "6b96e9fd0500227f",
     "alerts.json": "4fb3ce078226aa53",
-    "facades/zones-MED.geojson": "438b94396a5d8a18",
-    "facades/zones-MEMN.geojson": "b3c31e59e5c5dda6",
+    "facades/zones-MED.geojson": "a30458793a409734",
+    "facades/zones-MEMN.geojson": "259563003803c38b",
     "facades/zones-NAMO.geojson": "f90beb584fba86ac",
-    "facades/zones-OTHER.geojson": "0773c3843a8432fc",
+    "facades/zones-OTHER.geojson": "c8bc4e6d6e63db98",
     "facades/zones-SA.geojson": "271bf775a587f02d"
   }
 }
